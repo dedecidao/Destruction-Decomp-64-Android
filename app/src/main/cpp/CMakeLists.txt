@@ -39,6 +39,10 @@ endif()
 option(DD64_ARM64_LINK "Link the game on arm64 (once the 64-bit conversion is done)" OFF)
 option(DD64_PROBE "Build only the address-space probe (android/probe.c) as libdd64.so" OFF)
 
+# Preloaded by wrap.sh in 32-bit debug builds: reserves 0x80000000 before ART starts
+# (android/reserve/dd64reserve.c, app/src/debug/resources/lib/armeabi-v7a/wrap.sh)
+add_library(dd64reserve SHARED ${CMAKE_CURRENT_SOURCE_DIR}/android/reserve/dd64reserve.c)
+
 if(DD64_PROBE)
     set(SDL_SHARED ON CACHE BOOL "" FORCE)
     set(SDL_STATIC OFF CACHE BOOL "" FORCE)
@@ -90,6 +94,9 @@ file(GLOB PORT_GAME_SRC CONFIGURE_DEPENDS ${DD64}/port/game/*.c)
 set(COMMON_FLAGS
     -g -O2 -gdwarf-4
     -fno-strict-aliasing -fwrapv -fno-omit-frame-pointer
+    # Plain char is signed on the N64 (KMC GCC, MIPS) and on the x86 PC build, but
+    # unsigned on ARM by default
+    -fsigned-char
     # No fused multiply-add: the N64 FPU rounds each step, and so must we
     -ffp-contract=off
     # Hidden symbols: the N64 addresses in dd64_syms.ld resolve at link time

@@ -26,8 +26,8 @@ android {
                 arguments '-DANDROID_STL=c++_static',
                           "-DDD64_ARM64_LINK=${arm64Link ? 'ON' : 'OFF'}",
                           "-DDD64_PROBE=${probe ? 'ON' : 'OFF'}"
-                // libSDL3.so and libdd64.so
-                targets 'SDL3-shared', 'dd64'
+                // libSDL3.so, libdd64.so, and libdd64reserve.so for wrap.sh
+                targets 'SDL3-shared', 'dd64', 'dd64reserve'
             }
         }
     }

@@ -19,6 +19,8 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <dlfcn.h>
+#include <stdint.h>
 #include <sys/mman.h>
 
 #include "port.h"
@@ -79,10 +81,33 @@ static void flushCode(u32 start, u32 end) {
 }
 
 static u8 *sMapped;
+static const char *sHow = "not mapped";
+
+/*
+ * libdd64reserve.so (preloaded by wrap.sh in debug builds) reserved
+ * 0x80000000 before ART started: the RAM image replaces that reservation.
+ */
+static int overPreloadReservation(void) {
+    const uintptr_t *rbase = dlsym(RTLD_DEFAULT, "dd64_low_reserve_base");
+    const size_t *rsize = dlsym(RTLD_DEFAULT, "dd64_low_reserve_size");
+    void *base;
+
+    if (rbase == NULL || rsize == NULL || *rbase != MAP_BASE || *rbase + *rsize < MAP_END + PAGE) {
+        return 0;
+    }
+    base = mmap((void *)MAP_BASE, MAP_END + PAGE - MAP_BASE, PROT_READ | PROT_WRITE | PROT_EXEC,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+    return base == (void *)MAP_BASE;
+}
 
 void Port_RamReserve(void) {
-    void *base = mmap((void *)MAP_BASE, MAP_END + PAGE - MAP_BASE, PROT_READ | PROT_WRITE | PROT_EXEC,
-                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
+    void *base;
+
+    if (sMapped != NULL) {
+        return;
+    }
+    base = mmap((void *)MAP_BASE, MAP_END + PAGE - MAP_BASE, PROT_READ | PROT_WRITE | PROT_EXEC,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
 
     if (base == MAP_FAILED) {
         base = NULL;
@@ -90,6 +115,12 @@ void Port_RamReserve(void) {
         /* An old kernel without MAP_FIXED_NOREPLACE took it as a hint */
         munmap(base, MAP_END + PAGE - MAP_BASE);
         base = NULL;
+    } else {
+        sHow = "free address range";
+    }
+    if (base == NULL && overPreloadReservation()) {
+        base = (void *)MAP_BASE;
+        sHow = "libdd64reserve.so reservation";
     }
     sMapped = base;
 }
@@ -125,6 +156,7 @@ void Port_RamInit(void) {
                    "Something else in the app's process already uses that address. "
                    "Please send Data/Logs/dd64.log to the developers.");
     }
+    Port_Log("ram: 0x80000000 mapped (%s)", sHow);
 
     for (w = (u32 *)MAP_BASE; w < (u32 *)CODE_END; w++) {
         *w = ARM_UDF;
