@@ -101,7 +101,7 @@ set(GAME_SHADOW
     "SHELL:-mllvm -asan-instrumentation-with-call-threshold=0")
 
 add_library(game OBJECT ${GAME_SRC} ${PORT_GAME_SRC} $<$<BOOL:${HAVE_SYMS}>:${GEN_FIX}>)
-target_include_directories(game PRIVATE ${DD64}/include ${DD64} ${DD64}/port/include)
+target_include_directories(game PRIVATE ${ANDROID_SRC}/include ${DD64}/include ${DD64} ${DD64}/port/include)
 target_compile_definitions(game PRIVATE TARGET_PC TARGET_ANDROID NON_MATCHING
     errno=dd64_errno _ctype=dd64_ctype
     acos=dd64_acos asin=dd64_asin atan=dd64_atan atan2=dd64_atan2 log=dd64_log log10=dd64_log10
@@ -155,7 +155,7 @@ add_custom_command(
     COMMENT "Embedding the combiner shader's GLSL" VERBATIM)
 
 add_library(port OBJECT ${PORT_SRC} ${ANDROID_PORT_SRC} ${GEN_SHADER_SRC})
-target_include_directories(port PRIVATE ${DD64}/include ${DD64}/port/include ${DD64}/port/fast3d
+target_include_directories(port PRIVATE ${ANDROID_SRC}/include ${DD64}/include ${DD64}/port/include ${DD64}/port/fast3d
                                         ${GEN_DIR} ${ANDROID_SRC})
 target_compile_definitions(port PRIVATE TARGET_PC TARGET_ANDROID)
 target_compile_options(port PRIVATE ${COMMON_FLAGS} -Wall -Wno-unused-parameter -Wno-unused-function
