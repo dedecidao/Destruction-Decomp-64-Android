@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An original mark: a dented wheel with "64" -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#F2F2F2"
+        android:pathData="M54,26a28,28 0,1 1,-0.01,0zM54,36a18,18 0,1 0,0.01,0z" />
+    <path android:fillColor="#E8432E"
+        android:pathData="M40,30l10,8l-4,6l-12,-4z" />
+    <path android:fillColor="#F2F2F2"
+        android:pathData="M47,47h6v3h-4v3h4v8h-7v-14zM49,56v3h2v-3zM55,47h3v7h2v-7h3v14h-3v-4h-5z" />
+</vector>

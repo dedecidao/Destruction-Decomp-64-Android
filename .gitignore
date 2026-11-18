@@ -1,0 +1,23 @@
+# Build output
+.gradle/
+build/
+app/build/
+app/.cxx/
+local.properties
+*.apk
+*.aab
+*.idx
+
+# Never commit game data
+*.z64
+*.n64
+*.v64
+baserom*
+dd64.elf
+*.elf
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.DS_Store

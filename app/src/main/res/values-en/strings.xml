@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="play">Play</string>
+    <string name="pick_rom">Pick ROM</string>
+    <string name="pick_other_rom">Change ROM</string>
+    <string name="rom_missing">Pick your Destruction Derby 64 (USA) ROM (.z64, .n64 or .v64). It is checked and copied into the app\'s private storage, and never leaves the device.</string>
+    <string name="rom_ready">ROM verified. Ready to play.</string>
+    <string name="rom_checking">Checking the ROM…</string>
+    <string name="rom_wrong_size">The file is not 16 MB, so it is not the cart image.</string>
+    <string name="rom_not_n64">The file is not a Nintendo 64 ROM.</string>
+    <string name="rom_wrong_sha1">This ROM is not Destruction Derby 64 (USA). Its SHA1 is %1$s.</string>
+    <string name="rom_read_error">Could not read the file: %1$s</string>
+    <string name="touch_title">Touch controls</string>
+    <string name="touch_enabled">Show on-screen controls</string>
+    <string name="touch_hide_with_gamepad">Hide them while a gamepad is connected</string>
+    <string name="touch_opacity">Opacity</string>
+    <string name="touch_scale">Size</string>
+    <string name="data_folder">Saves, logs, dd64.ini and HD fonts are in:\n%1$s/Data</string>
+</resources>

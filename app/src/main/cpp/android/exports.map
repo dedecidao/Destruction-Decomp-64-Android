@@ -1,0 +1,8 @@
+/* libdd64.so exports only what SDLActivity and the Java side call */
+{
+  global:
+    SDL_main;
+    Java_*;
+  local:
+    *;
+};

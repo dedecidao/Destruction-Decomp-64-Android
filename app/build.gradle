@@ -1,0 +1,77 @@
+plugins {
+    id 'com.android.application'
+}
+
+def abis = (project.findProperty('dd64.abis') ?: 'armeabi-v7a,arm64-v8a').split(',')*.trim()
+def arm64Link = (project.findProperty('dd64.arm64Link') ?: 'false').toBoolean()
+
+android {
+    namespace = 'io.github.dedecidao.dd64'
+    compileSdk = 35
+    ndkVersion = '27.2.12479018'
+
+    defaultConfig {
+        applicationId = 'io.github.dedecidao.dd64'
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = '0.1.0'
+
+        ndk {
+            abiFilters.addAll(abis)
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_static',
+                          "-DDD64_ARM64_LINK=${arm64Link ? 'ON' : 'OFF'}"
+                // libSDL3.so and libdd64.so
+                targets 'SDL3-shared', 'dd64'
+            }
+        }
+    }
+
+    // SDL's own Java side (SDLActivity and friends), from the submodule
+    sourceSets {
+        main {
+            java.srcDirs += ['../external/SDL/android-project/app/src/main/java']
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file('src/main/cpp/CMakeLists.txt')
+            version = '3.22.1'
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable = true
+            jniDebuggable = true
+            applicationIdSuffix = '.debug'
+            versionNameSuffix = '-debug'
+        }
+        release {
+            minifyEnabled = false
+            // Signed with the debug key until there is a release key (docs/PLANO.md)
+            signingConfig = signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    packaging {
+        jniLibs {
+            // keep symbols in the debug APK for crash logs
+            keepDebugSymbols += ['**/*.so']
+            useLegacyPackaging = true
+        }
+    }
+
+    lint {
+        abortOnError = false
+    }
+}

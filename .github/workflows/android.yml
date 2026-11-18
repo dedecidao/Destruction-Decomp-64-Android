@@ -1,0 +1,53 @@
+name: Android APK
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  apk:
+    name: APK (armeabi-v7a, full game)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Tools
+        # GNU objdump for 32-bit ARM ELF: tools/port/gen_widths.py reads the game objects' DWARF with it
+        run: sudo apt-get update && sudo apt-get install -y binutils-arm-linux-gnueabihf ninja-build
+
+      - name: Build
+        run: ./gradlew --no-daemon assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dd64-android-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  arm64-check:
+    name: arm64-v8a compile check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build native code for arm64-v8a
+        run: ./gradlew --no-daemon -Pdd64.abis=arm64-v8a externalNativeBuildDebug
