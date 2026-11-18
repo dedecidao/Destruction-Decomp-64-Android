@@ -19,6 +19,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Remove SDL's sample Gradle wrapper
+        # external/SDL/android-project ships a gradle-wrapper.jar for SDL's own sample
+        # project. This build never runs it (it uses the Gradle set up below), and
+        # gradle/actions cannot match its checksum, so it is deleted from the checkout.
+        run: rm -f external/SDL/android-project/gradle/wrapper/gradle-wrapper.jar
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
@@ -48,6 +54,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Remove SDL's sample Gradle wrapper
+        # external/SDL/android-project ships a gradle-wrapper.jar for SDL's own sample
+        # project. This build never runs it (it uses the Gradle set up below), and
+        # gradle/actions cannot match its checksum, so it is deleted from the checkout.
+        run: rm -f external/SDL/android-project/gradle/wrapper/gradle-wrapper.jar
 
       - uses: gradle/actions/setup-gradle@v4
         with:
