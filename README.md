@@ -63,13 +63,13 @@ de arquivos ou por USB:
 
 ## Compilar
 
-Precisa de JDK 17, Android SDK com NDK 27 e CMake 3.22, além de Python 3 e
+Precisa de JDK 17, Gradle 8.14 (ou o Android Studio), Android SDK com NDK 27 e CMake 3.22, além de Python 3 e
 `binutils-arm-linux-gnueabihf` (para o `objdump` que lê o DWARF dos objetos ARM).
 
 ```sh
 git clone --recursive https://github.com/dedecidao/Destruction-Decomp-64-Android
 cd Destruction-Decomp-64-Android
-./gradlew assembleDebug
+gradle assembleDebug
 # APK em app/build/outputs/apk/debug/
 ```
 
