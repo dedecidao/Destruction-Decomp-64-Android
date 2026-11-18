@@ -17,6 +17,7 @@
  * overlap. Everything else in the code range is a permanently undefined
  * instruction, so a call to a function the port lacks stops right there.
  */
+#include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
 
