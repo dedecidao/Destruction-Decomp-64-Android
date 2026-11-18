@@ -22,7 +22,12 @@ public class GameActivity extends SDLActivity {
     @Override
     protected String[] getArguments() {
         String rom = getIntent().getStringExtra(EXTRA_ROM);
-        return new String[] { rom != null ? rom : "" };
+        if (rom == null || rom.isEmpty()) {
+            // Recreated by the system (after an app update, or from recents) with an
+            // intent that has no extra: the ROM is where the launcher keeps it
+            rom = LauncherActivity.romFile(this).getAbsolutePath();
+        }
+        return new String[] { rom };
     }
 
     @Override

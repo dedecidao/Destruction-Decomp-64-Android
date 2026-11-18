@@ -132,6 +132,12 @@ target_compile_options(game PRIVATE ${COMMON_FLAGS} ${GAME_LENIENT} ${GAME_SHADO
     # ARM state, not Thumb, on 32-bit: simpler crash logs while the port is young
     $<$<NOT:$<BOOL:${DD64_64BIT}>>:-marm>)
 
+# inflate_codes (src/auto/51980.c) at -O0: built with clang -O2 for ARM it loops
+# forever on the first race's zip entry (the title screen never comes; found by
+# bisecting the inflate files on a Galaxy S23 Ultra). GCC -O2 on x86 is fine. It
+# only runs while loading, so the speed does not matter; the clang cause is still open.
+set_source_files_properties(${DD64}/src/auto/51980.c PROPERTIES COMPILE_OPTIONS -O0)
+
 # ---- Static data conversion table (DWARF of the game objects) ----
 set(GEN_WIDTHS ${GEN_DIR}/dd64_widths.c)
 # clang emits no DWARF for extern variables (only for BPF), and the game declares

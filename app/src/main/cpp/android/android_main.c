@@ -16,6 +16,10 @@
 #include <ucontext.h>
 #include <unwind.h>
 #include <dlfcn.h>
+#include <dirent.h>
+#include <pthread.h>
+#include <sys/prctl.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include "port.h"
@@ -103,6 +107,130 @@ static void crashHandler(int sig, siginfo_t *si, void *uc) {
     raise(sig);
 }
 
+/*
+ * DD64_STACKS=<milliseconds> (Data/env.txt): every so often, each running game thread
+ * ("n64 ...") logs where it is, as libdd64.so offsets for llvm-addr2line. For a game
+ * that hangs or spins: Android does not let an app profile itself (simpleperf needs
+ * a system property), so the threads report themselves. With DD64_PEEK=addr,addr...
+ * the sampler also logs those N64 RAM words each time (progress counters).
+ * Signal context: logcat only (liblog), never the stdio log file, whose lock the
+ * thread may hold; pc and lr only (unwinding from there crashed in libunwind).
+ */
+static void sampleAddr(const char *what, const char *thread, uintptr_t a) {
+    Dl_info d;
+
+    if (dladdr((void *)a, &d) && d.dli_fname != NULL) {
+        __android_log_print(ANDROID_LOG_INFO, "DD64", "stacks: [%s] %s %s+%X", thread, what,
+                            strrchr(d.dli_fname, '/') ? strrchr(d.dli_fname, '/') + 1 : d.dli_fname,
+                            (unsigned)(a - (uintptr_t)d.dli_fbase));
+    } else {
+        __android_log_print(ANDROID_LOG_INFO, "DD64", "stacks: [%s] %s %08X", thread, what, (unsigned)a);
+    }
+}
+
+static void stackSample(int sig, siginfo_t *si, void *uc) {
+    const mcontext_t *m = &((const ucontext_t *)uc)->uc_mcontext;
+    char name[32] = "?";
+
+    (void)sig;
+    (void)si;
+    prctl(PR_GET_NAME, (unsigned long)name, 0, 0, 0);
+    sampleAddr("pc", name, m->arm_pc);
+    sampleAddr("lr", name, m->arm_lr);
+}
+
+static void logPeek(void) {
+    static char peek[256];
+    static int peekInit;
+    char tmp[256], buf[512], *p, *save = NULL;
+    int len = 0;
+
+    if (!peekInit) {
+        const char *v = getenv("DD64_PEEK");
+        peekInit = 1;
+        snprintf(peek, sizeof(peek), "%s", v != NULL ? v : "");
+    }
+    if (peek[0] == 0) {
+        return;
+    }
+    snprintf(tmp, sizeof(tmp), "%s", peek);
+    buf[0] = 0;
+    for (p = strtok_r(tmp, ",", &save); p != NULL && len < (int)sizeof(buf) - 32; p = strtok_r(NULL, ",", &save)) {
+        u32 a = (u32)strtoul(p, NULL, 16);
+        void *h = Port_N64ToHost(a);
+        len += snprintf(buf + len, sizeof(buf) - len, " %08X=%08X", a, h != NULL ? *(volatile u32 *)h : 0xDEADBEEFu);
+    }
+    __android_log_print(ANDROID_LOG_INFO, "DD64", "peek:%s", buf);
+}
+
+static void *stackSampler(void *arg) {
+    int ms = (int)(intptr_t)arg;
+
+    for (;;) {
+        DIR *dir;
+        struct dirent *e;
+
+        usleep(ms * 1000);
+        logPeek();
+        dir = opendir("/proc/self/task");
+        while (dir != NULL && (e = readdir(dir)) != NULL) {
+            char path[64], comm[32] = "", stat[256] = "", *rp;
+            int tid = atoi(e->d_name);
+            FILE *f;
+
+            if (tid <= 0) {
+                continue;
+            }
+            snprintf(path, sizeof(path), "/proc/self/task/%d/comm", tid);
+            f = fopen(path, "r");
+            if (f != NULL) {
+                if (fgets(comm, sizeof(comm), f) == NULL) {
+                    comm[0] = 0;
+                }
+                fclose(f);
+            }
+            if (strncmp(comm, "n64", 3) != 0) {
+                continue;
+            }
+            snprintf(path, sizeof(path), "/proc/self/task/%d/stat", tid);
+            f = fopen(path, "r");
+            if (f != NULL) {
+                if (fgets(stat, sizeof(stat), f) == NULL) {
+                    stat[0] = 0;
+                }
+                fclose(f);
+            }
+            rp = strrchr(stat, ')');
+            if (rp != NULL && rp[1] == ' ' && rp[2] == 'R') { /* running threads only */
+                syscall(SYS_tgkill, getpid(), tid, SIGUSR2);
+            }
+        }
+        if (dir != NULL) {
+            closedir(dir);
+        }
+    }
+    return NULL;
+}
+
+static void startStackSampler(void) {
+    const char *v = getenv("DD64_STACKS");
+    struct sigaction sa;
+    pthread_t th;
+    int ms = v != NULL ? atoi(v) : 0;
+
+    if (ms <= 0) {
+        return;
+    }
+    SDL_zero(sa);
+    sa.sa_sigaction = stackSample;
+    sa.sa_flags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGUSR2, &sa, NULL);
+    pthread_create(&th, NULL, stackSampler, (void *)(intptr_t)ms);
+    pthread_detach(th);
+    Port_Log("stacks: running game threads report every %d ms", ms);
+}
+
 static void installCrashHandler(void) {
     static const int sigs[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGABRT };
     struct sigaction sa;
@@ -168,6 +296,8 @@ int main(int argc, char **argv) {
     }
     loadEnvFile();
     installCrashHandler();
+    startStackSampler();
+    Port_Log("rom: argument '%s'", argc > 1 && argv[1] != NULL ? argv[1] : "(none)");
     if (argc > 1 && argv[1] != NULL && argv[1][0] != '\0') {
         SDL_setenv_unsafe("DD64_ROM", argv[1], 1); /* rom.c tries DD64_ROM first */
     }
