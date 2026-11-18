@@ -4,6 +4,7 @@ plugins {
 
 def abis = (project.findProperty('dd64.abis') ?: 'armeabi-v7a,arm64-v8a').split(',')*.trim()
 def arm64Link = (project.findProperty('dd64.arm64Link') ?: 'false').toBoolean()
+def probe = (project.findProperty('dd64.probe') ?: 'false').toBoolean()
 
 android {
     namespace = 'io.github.dedecidao.dd64'
@@ -23,7 +24,8 @@ android {
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static',
-                          "-DDD64_ARM64_LINK=${arm64Link ? 'ON' : 'OFF'}"
+                          "-DDD64_ARM64_LINK=${arm64Link ? 'ON' : 'OFF'}",
+                          "-DDD64_PROBE=${probe ? 'ON' : 'OFF'}"
                 // libSDL3.so and libdd64.so
                 targets 'SDL3-shared', 'dd64'
             }

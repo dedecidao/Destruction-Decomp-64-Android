@@ -68,5 +68,43 @@ jobs:
         with:
           gradle-version: '8.14.3'
 
+      - name: arm64 address-space probe APK
+        # A stand-in libdd64.so that checks the RAM image can be mapped at 0x80000000
+        # in a 64-bit process (android/probe.c)
+        run: |
+          gradle --no-daemon -Pdd64.abis=arm64-v8a -Pdd64.probe=true assembleDebug
+          mkdir -p probe && cp app/build/outputs/apk/debug/*.apk probe/dd64-arm64-probe.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dd64-arm64-probe-apk
+          path: probe/dd64-arm64-probe.apk
+
       - name: Build native code for arm64-v8a
-        run: gradle --no-daemon -Pdd64.abis=arm64-v8a externalNativeBuildDebug
+        run: gradle --no-daemon -Pdd64.abis=arm64-v8a -Pdd64.probe=false externalNativeBuildDebug
+
+  nightly:
+    # The latest APKs from main as a rolling pre-release, so a phone (or adb on a
+    # PC) can download them without signing in to GitHub
+    name: Publish nightly pre-release
+    needs: [apk, arm64-check]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dl
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p out
+          cp dl/dd64-android-debug-apk/*.apk out/dd64-armeabi-v7a-debug.apk
+          if [ -f dl/dd64-arm64-probe-apk/dd64-arm64-probe.apk ]; then cp dl/dd64-arm64-probe-apk/dd64-arm64-probe.apk out/; fi
+          gh release delete nightly --repo "$REPO" --yes --cleanup-tag || true
+          gh release create nightly out/*.apk --repo "$REPO" --prerelease --target "$GITHUB_SHA" \
+            --title "Nightly (${GITHUB_SHA::7})" \
+            --notes "Builds automáticos do último commit em main. Sem dados da ROM: escolha a sua ROM no app."
