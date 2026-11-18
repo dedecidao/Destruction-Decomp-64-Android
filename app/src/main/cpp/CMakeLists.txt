@@ -114,6 +114,10 @@ target_compile_options(game PRIVATE ${COMMON_FLAGS} ${GAME_LENIENT} ${GAME_SHADO
     # ARM state, not Thumb, on 32-bit: simpler crash logs while the port is young
     $<$<NOT:$<BOOL:${DD64_64BIT}>>:-marm>)
 
+# dd64_fix.c declares every game function as `extern char f[]`, libc names
+# (memcpy, strlen...) included: clang only accepts that without its builtins
+set_source_files_properties(${GEN_FIX} PROPERTIES COMPILE_OPTIONS -fno-builtin)
+
 # ---- Static data conversion table (DWARF of the game objects) ----
 set(GEN_WIDTHS ${GEN_DIR}/dd64_widths.c)
 if(HAVE_SYMS)

@@ -45,6 +45,9 @@ jobs:
   arm64-check:
     name: arm64-v8a compile check
     runs-on: ubuntu-24.04
+    # Expected to fail until the 64-bit conversion (docs/PLANO.md, phase 2); it
+    # lists what is left to convert without marking the APK build red
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
