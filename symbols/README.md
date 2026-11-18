@@ -21,3 +21,13 @@ git add symbols/dd64.syms
 
 The `port-pc` commit the ELF was built from must be the one `external/dd64`
 points at, or the addresses will not fit the code.
+
+## dd64_widths.c
+
+The table of static data the port converts to host byte order at boot (address and
+width of every scalar the game's C declares), as `tools/port/gen_widths.py` writes it
+in the PC build. It is taken from the PC build because clang, unlike GCC, writes no
+debug info for `extern` variables, so the generator finds almost nothing in the ARM
+objects. Like `dd64.syms` it holds only addresses and widths. Copy it again from the
+PC build's `build-win/gen/dd64_widths.c` whenever `external/dd64` moves, and keep the
+comment line at the top naming the commit.

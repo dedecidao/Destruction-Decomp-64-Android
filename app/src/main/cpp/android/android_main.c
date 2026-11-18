@@ -16,6 +16,7 @@
 #include <ucontext.h>
 #include <unwind.h>
 #include <dlfcn.h>
+#include <unistd.h>
 
 #include "port.h"
 #include "port_config.h"
@@ -126,9 +127,46 @@ static void openLog(void) {
     sLogFile = fopen(path, "w");
 }
 
+/*
+ * Data/env.txt: KEY=VALUE lines set as environment variables at startup, for the
+ * PC port's DD64_* test and debug switches (DD64_SHOT, DD64_PRESS, DD64_GFXLOG...),
+ * which on a PC are set in the shell. Lines starting with # are skipped.
+ */
+static void loadEnvFile(void) {
+    const char *base = DD64A_GetBasePath();
+    char path[1024], line[1024];
+    FILE *f;
+
+    SDL_snprintf(path, sizeof(path), "%sData/env.txt", base);
+    f = fopen(path, "r");
+    if (f == NULL) {
+        return;
+    }
+    while (fgets(line, sizeof(line), f) != NULL) {
+        char *eq, *end;
+
+        line[strcspn(line, "\r\n")] = 0;
+        eq = strchr(line, '=');
+        if (line[0] == '#' || eq == NULL || eq == line) {
+            continue;
+        }
+        *eq = 0;
+        for (end = eq; end > line && (end[-1] == ' ' || end[-1] == '\t'); end--) {
+            end[-1] = 0;
+        }
+        SDL_setenv_unsafe(line, eq + 1, 1); /* getenv and SDL_getenv both see it */
+        Port_Log("env: %s=%s", line, eq + 1);
+    }
+    fclose(f);
+}
 int main(int argc, char **argv) {
     Port_RamReserve(); /* 0x80000000 up, before anything else can take it */
     openLog();
+    /* Debug dumps (DD64_SHOT, DD64_TEXDUMP...) use relative paths: into the app's folder */
+    if (chdir(DD64A_GetBasePath()) != 0) {
+        Port_Log("chdir %s failed", DD64A_GetBasePath());
+    }
+    loadEnvFile();
     installCrashHandler();
     if (argc > 1 && argv[1] != NULL && argv[1][0] != '\0') {
         SDL_setenv_unsafe("DD64_ROM", argv[1], 1); /* rom.c tries DD64_ROM first */
