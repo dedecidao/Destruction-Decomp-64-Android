@@ -87,7 +87,7 @@ esse arquivo, o build só compila o código, como verificação.
 | Parte | Onde |
 |---|---|
 | Jogo (C decompilado) e runtime de PC | `external/dd64` (submódulo, `port-pc`) |
-| SDL3 (janela, Vulkan, áudio, gamepads, `SDLActivity`) | `external/SDL` (submódulo, 3.2.30) |
+| SDL3 (janela, Vulkan, áudio, gamepads, `SDLActivity`) | `external/SDL` (submódulo, 3.4.20) |
 | Entrada nativa, log, crash handler | `app/src/main/cpp/android/android_main.c` |
 | RAM do N64 em 0x80000000 e stubs ARM para ponteiros de função | `app/src/main/cpp/android/ram_arm.c` |
 | Touch → controle 1 | `app/src/main/cpp/android/touch.c` e `TouchControlsView.java` |

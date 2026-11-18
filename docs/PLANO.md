@@ -32,7 +32,7 @@ Adreno 740 já basta. libadrenotools pode entrar depois, se algum driver der pro
 
 ```
 external/dd64        submódulo: Destruction-Decomp-64, branch port-pc (o jogo e o runtime de PC)
-external/SDL         submódulo: SDL 3.2.30 (biblioteca nativa e o lado Java)
+external/SDL         submódulo: SDL 3.4.20 (biblioteca nativa e o lado Java)
 symbols/dd64.syms    nomes e endereços do build N64 (sem dados da ROM)
 tools/               export_symbols.py e o adaptador dos geradores de tabela do port-pc
 app/src/main/cpp     CMake do NDK e o código só do Android (android/)
