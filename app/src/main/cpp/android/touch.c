@@ -21,9 +21,16 @@ int Port_InputConnectedHost(int channel);
 static SDL_AtomicInt sTouchButtons;
 static SDL_AtomicInt sTouchStick; /* x in the low 16 bits, y in the high, signed */
 static SDL_AtomicInt sTouchActive;
+/* Buttons pressed since the game last read the pad: a tap shorter than the game's
+   polling interval still counts once */
+static SDL_AtomicInt sTouchLatched;
 
 JNIEXPORT void JNICALL Java_io_github_dedecidao_dd64_TouchControlsView_nativeSetState(JNIEnv *env, jclass cls,
                                                                                      jint buttons, jint x, jint y) {
+    int old = SDL_GetAtomicInt(&sTouchButtons), latched;
+    do {
+        latched = SDL_GetAtomicInt(&sTouchLatched);
+    } while (!SDL_CompareAndSwapAtomicInt(&sTouchLatched, latched, latched | (buttons & ~old & 0xFFFF)));
     SDL_SetAtomicInt(&sTouchButtons, buttons & 0xFFFF);
     SDL_SetAtomicInt(&sTouchStick, (int)((u32)(u16)(s16)x | ((u32)(u16)(s16)y << 16)));
     SDL_SetAtomicInt(&sTouchActive, 1);
@@ -34,7 +41,7 @@ void Port_InputGetPad(int channel, OSContPad *out) {
     if (channel == 0 && SDL_GetAtomicInt(&sTouchActive)) {
         u32 stick = (u32)SDL_GetAtomicInt(&sTouchStick);
         s8 x = (s8)(s16)(stick & 0xFFFF), y = (s8)(s16)(stick >> 16);
-        out->button |= (u16)SDL_GetAtomicInt(&sTouchButtons);
+        out->button |= (u16)(SDL_GetAtomicInt(&sTouchButtons) | SDL_SetAtomicInt(&sTouchLatched, 0));
         /* The touch stick wins while it is held; a gamepad's stick otherwise */
         if (x != 0 || y != 0) {
             out->stick_x = x;
