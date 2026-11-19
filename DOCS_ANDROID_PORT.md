@@ -84,6 +84,25 @@ Caminho do rumble do jogo até o motor:
 
 Testado no S23: `VibrationThread: Turned on vibrator 0, result = 160`, amplitude 1.0.
 
+## Menu Cheats (fase 5)
+
+Página **cheats** no menu de PC (PC e Android), `external/dd64/port/src/options.c`
+(`kCheats`, `applyCheats`), chaves `[cheats]` no dd64.ini. Usa os flags dos códigos
+do próprio jogo (DOCS_INTERNALS_AND_OPTIONS.md):
+
+| Linha | Flag | Código original | Quando vale |
+|---|---|---|---|
+| unlock all cars | `0x801253F8` | DUD | na hora (seleção de carro) |
+| unlock all tracks | `0x801253F9` | BRAD | na hora (todas as dificuldades, e com elas as pistas do campeonato) |
+| indestructible car | `0x8012540C + 0x18*j` `+0` | BAR | na próxima corrida |
+| no time limit | `+1` | DAD | na próxima corrida |
+| super ram | `+2` | LRLR | na próxima corrida (zonas de dano em 100: bate forte e sofre pouco) |
+| heavy car | `+4` | BALD | na próxima corrida |
+
+Os flags são reaplicados a cada leitura dos controles (`Port_InputNoteMenuPad`), porque
+`Cheat_ResetAll` os zera ao trocar de modo. Desligar uma linha zera o flag uma vez; os
+códigos digitados no jogo continuam funcionando. Valem para os 4 jogadores.
+
 ## Testes no celular (adb)
 
 - Script: `C:\Users\Admin\Documents\claudeProjects\DD64-android-logs\test-run.ps1`
