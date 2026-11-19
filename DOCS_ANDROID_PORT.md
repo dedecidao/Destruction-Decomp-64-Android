@@ -48,7 +48,7 @@ sob `#ifdef __ANDROID__`; as do PC continuam iguais) e `port/src/config.c` (padr
 | video | resolution (720p/1080p de saída), vsync, interpolation, 3d resolution (720p/1080p), anti-aliasing (off/2x), clean cut-outs, hd fonts, seamless sky, draw distance (x8/x16), fps counter, renderer (vulkan / opengl es) |
 | sound | master volume, audio delay |
 | controls | rumble, rumble strength, stick dead zone, stick range, camera dead zone, analog pedals |
-| game | drones, set all drones to, announce every wreck, cpu unlockables |
+| game | announce every wreck (drones, set all drones to e cpu unlockables removidos: ficam em 1x / default / off) |
 | advanced (nova) | screen shape (4:3/widescreen), n64 aa blur, texture filter, hud boxes, anisotropy, skip intros |
 
 Toda página termina em **restore defaults** (`Port_ConfigDefault`).
@@ -69,6 +69,11 @@ Padrões do Android e o porquê:
 | skip intros | on (avançado) | pedido |
 | renderer | vulkan | o OpenGL ES funciona (shim de `glDepthRangef` em `gfx_opengl.cpp`) mas roda a ~3 fps na Adreno 740 |
 | right stick camera | on, oculta | pedido |
+| interpolation | off | decisão do André após a fase 2 |
+| clean cut-outs | on | decisão do André após a fase 2 |
+| seamless sky | on | decisão do André após a fase 2 |
+| drones / set all drones to / cpu unlockables | 1x / default / off, removidos | decisão do André: os drones faziam carros voarem na largada das arenas |
+| raphnet | oculto | não é compilado no Android |
 | keyboard drives, raphnet, controller paks, páginas keys/pad, display, frame limit | ocultos | não se aplicam ao celular |
 
 ## Vibração (fase 4)
