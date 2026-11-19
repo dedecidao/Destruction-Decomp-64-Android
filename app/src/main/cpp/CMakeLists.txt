@@ -8,6 +8,7 @@
 #   ram_arm.c       the N64 RAM image at 0x80000000, with ARM jump stubs
 #   paths.c         the game's folder: the app's external files dir
 #   touch.c         the on-screen controls, merged into player 1's pad
+#   haptics.c       rumble: gamepads, or the phone's vibrator when there is none
 #   stubs.c         raphnet adapters and the sampling profiler: not on Android
 #
 # The symbol tables come from symbols/dd64.syms (names and N64 addresses only,
@@ -200,7 +201,7 @@ target_compile_options(port PRIVATE ${COMMON_FLAGS} -Wall -Wno-unused-parameter 
 target_link_libraries(port PRIVATE SDL3::SDL3-shared)
 # Port files whose host calls get an Android version (see each file in android/)
 set_source_files_properties(${DD64}/port/src/input.c PROPERTIES COMPILE_DEFINITIONS
-    "Port_InputGetPad=Port_InputGetPadHost;Port_InputConnected=Port_InputConnectedHost")
+    "Port_InputGetPad=Port_InputGetPadHost;Port_InputConnected=Port_InputConnectedHost;Port_InputRumble=Port_InputRumbleHost")
 # MSAA off: black frames on the Adreno 740 with a multisample target (android/gpu_caps.c)
 set_source_files_properties(${DD64}/port/fast3d/gfx_sdlgpu.cpp PROPERTIES COMPILE_DEFINITIONS
     "SDL_GPUTextureSupportsSampleCount=DD64A_GPUTextureSupportsSampleCount")

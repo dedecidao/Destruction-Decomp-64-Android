@@ -71,6 +71,19 @@ Padrões do Android e o porquê:
 | right stick camera | on, oculta | pedido |
 | keyboard drives, raphnet, controller paks, páginas keys/pad, display, frame limit | ocultos | não se aplicam ao celular |
 
+## Vibração (fase 4)
+
+Caminho do rumble do jogo até o motor:
+
+| Etapa | Onde |
+|---|---|
+| O jogo pede rumble | `Pad_Rumble(canal, quadros, força)` (`src/auto/59D40.c`), chamado em batidas entre carros (`28C70.c`), destruição/aterrissagem (`1C624.c`, 30 quadros a 0,9 e contínuo pela força do impacto) e `2E9D0.c` (5 quadros a 0,75); zerado nos menus/pausa (`46894.c`, `476B8.c`) |
+| Liga/desliga o motor (PWM: mais fraco = pulsos mais espaçados) | `Pad_Update` (`59B08.c`) → `__osMotorAccess` (`port/src/os_hw.c`) |
+| Port | `Port_InputRumble`: no PC só gamepads (`port/src/input.c`, compilado no Android como `Port_InputRumbleHost`) |
+| Android | `app/src/main/cpp/android/haptics.c`: gamepads como no PC; **sem gamepad, o vibrador do celular** (SDL haptic "VIBRATOR_SERVICE" → `VibrationEffect`), pulsos de 160 ms renovados enquanto o jogo liga o motor, amplitude = rumble strength. Permissão `VIBRATE` no manifest |
+
+Testado no S23: `VibrationThread: Turned on vibrator 0, result = 160`, amplitude 1.0.
+
 ## Testes no celular (adb)
 
 - Script: `C:\Users\Admin\Documents\claudeProjects\DD64-android-logs\test-run.ps1`
