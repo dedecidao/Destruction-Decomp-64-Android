@@ -43,11 +43,8 @@ jobs:
           if-no-files-found: error
 
   arm64-check:
-    name: arm64-v8a compile check
+    name: arm64-v8a (probe APK + conversion status)
     runs-on: ubuntu-24.04
-    # Expected to fail until the 64-bit conversion (docs/PLANO.md, phase 2); it
-    # lists what is left to convert without marking the APK build red
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -80,8 +77,30 @@ jobs:
           name: dd64-arm64-probe-apk
           path: probe/dd64-arm64-probe.apk
 
-      - name: Build native code for arm64-v8a
-        run: gradle --no-daemon -Pdd64.abis=arm64-v8a -Pdd64.probe=false externalNativeBuildDebug
+      - name: arm64 conversion status (informational)
+        # The game's C is not converted to 64-bit yet (docs/ARM64.md), so this build is
+        # expected to fail; its errors are the to-do list, written to the job summary.
+        # It turns into a required check once the conversion links.
+        id: arm64
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gradle --no-daemon -Pdd64.abis=arm64-v8a -Pdd64.probe=false externalNativeBuildDebug 2>&1 | tee arm64.log
+
+      - name: arm64 conversion summary
+        if: always()
+        run: |
+          {
+            echo "## arm64-v8a conversion"
+            if [ "${{ steps.arm64.outcome }}" = success ]; then
+              echo "The native code builds for arm64-v8a."
+            else
+              echo "Not converted yet (expected, docs/ARM64.md). Compiler errors:"
+              echo '```'
+              grep -E "error:" arm64.log | sed 's/.*external\/dd64\///' | sort | uniq -c | sort -rn | head -40 || true
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   nightly:
     # The latest APKs from main as a rolling pre-release, so a phone (or adb on a
