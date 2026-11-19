@@ -1,9 +1,15 @@
 package io.github.dedecidao.dd64;
 
+import android.graphics.Point;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.ViewGroup;
 
 import org.libsdl.app.SDLActivity;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 
 /**
  * The game: SDL's activity running libdd64.so, with the touch controls on top.
@@ -33,11 +39,53 @@ public class GameActivity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        applyOutputResolution();
         if (mLayout != null && Settings.touchEnabled(this)) {
             mTouch = new TouchControlsView(this);
             mLayout.addView(mTouch, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         }
+    }
+
+    /**
+     * The video page's "resolution" (dd64.ini [video] window_height: 720 or 1080): the
+     * surface the game draws to is that many lines, the width following the screen's
+     * shape, and the display scales it to the screen. Read once, at start.
+     */
+    private void applyOutputResolution() {
+        int lines = readIniInt("window_height", 720);
+        if (mSurface == null || (lines != 720 && lines != 1080)) {
+            return;
+        }
+        Display d = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        d.getRealSize(size);
+        int longSide = Math.max(size.x, size.y), shortSide = Math.min(size.x, size.y);
+        if (shortSide <= 0) {
+            return;
+        }
+        int width = (int) Math.round((double) lines * longSide / shortSide) & ~1;
+        mSurface.getHolder().setFixedSize(width, lines);
+    }
+
+    /** An integer key of dd64.ini (in the app's external files folder), or `def` */
+    private int readIniInt(String key, int def) {
+        File ini = new File(getExternalFilesDir(null), "dd64.ini");
+        try (BufferedReader r = new BufferedReader(new FileReader(ini))) {
+            String line;
+            while ((line = r.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith(key)) {
+                    int eq = line.indexOf('=');
+                    if (eq > 0 && line.substring(0, eq).trim().equals(key)) {
+                        return Integer.parseInt(line.substring(eq + 1).trim());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // no dd64.ini yet (first start): the default
+        }
+        return def;
     }
 
     @Override

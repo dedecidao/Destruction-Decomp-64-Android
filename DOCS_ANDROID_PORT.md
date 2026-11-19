@@ -36,6 +36,41 @@ do jogo num endereço N64 absoluto tem de ser acessado pela GOT, nunca relativo 
 No código do port (visibilidade hidden), usar `Port_N64ToHost(endereço)` em vez de
 `extern`.
 
+## Menus no Android (fase 3)
+
+O menu de PC (R no menu do jogo) no Android: `external/dd64/port/src/options.c` (páginas
+sob `#ifdef __ANDROID__`; as do PC continuam iguais) e `port/src/config.c` (padrões
+`DEF(pc, android)` e valores forçados depois de ler o dd64.ini). O submódulo
+`external/dd64` agora segue a branch **`android-port`** do fork.
+
+| Página | Linhas no Android |
+|---|---|
+| video | resolution (720p/1080p de saída), vsync, interpolation, 3d resolution (720p/1080p), anti-aliasing (off/2x), clean cut-outs, hd fonts, seamless sky, draw distance (x8/x16), fps counter, renderer (vulkan / opengl es) |
+| sound | master volume, audio delay |
+| controls | rumble, rumble strength, stick dead zone, stick range, camera dead zone, analog pedals |
+| game | drones, set all drones to, announce every wreck, cpu unlockables |
+| advanced (nova) | screen shape (4:3/widescreen), n64 aa blur, texture filter, hud boxes, anisotropy, skip intros |
+
+Toda página termina em **restore defaults** (`Port_ConfigDefault`).
+
+Padrões do Android e o porquê:
+
+| Opção | Padrão | Motivo |
+|---|---|---|
+| resolution (saída) | 720p | `GameActivity.applyOutputResolution` dimensiona a surface pela altura (largura segue o formato da tela); 1080p para quem quiser nitidez |
+| 3d resolution | 720p | maior custo de GPU/bateria; 1080p disponível |
+| anti-aliasing | **2x** | GPUs de celular são *tile-based*: as amostras do MSAA ficam na memória do tile e 2x custa pouco. 4x fica **preto** com SDL_gpu na Adreno 740 (testado), então o máximo no Android é 2x (`android/gpu_caps.c`) |
+| n64 aa blur | on (avançado) | o visual do N64; precisa de MSAA ≥ 2x |
+| texture filter | n64 3-point (avançado) | o filtro real do N64 (3 amostras), custo quase igual ao bilinear |
+| anisotropy | 16x (avançado) | barato em GPUs modernas, chão nítido |
+| draw distance | x16 (só x8/x16) | geometria do N64 é leve |
+| hud boxes | off (avançado) | pedido |
+| screen shape | widescreen (avançado), sem "stretched" | pedido |
+| skip intros | on (avançado) | pedido |
+| renderer | vulkan | o OpenGL ES funciona (shim de `glDepthRangef` em `gfx_opengl.cpp`) mas roda a ~3 fps na Adreno 740 |
+| right stick camera | on, oculta | pedido |
+| keyboard drives, raphnet, controller paks, páginas keys/pad, display, frame limit | ocultos | não se aplicam ao celular |
+
 ## Testes no celular (adb)
 
 - Script: `C:\Users\Admin\Documents\claudeProjects\DD64-android-logs\test-run.ps1`
