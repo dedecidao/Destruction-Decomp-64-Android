@@ -85,9 +85,22 @@ Caminho do rumble do jogo até o motor:
 | O jogo pede rumble | `Pad_Rumble(canal, quadros, força)` (`src/auto/59D40.c`), chamado em batidas entre carros (`28C70.c`), destruição/aterrissagem (`1C624.c`, 30 quadros a 0,9 e contínuo pela força do impacto) e `2E9D0.c` (5 quadros a 0,75); zerado nos menus/pausa (`46894.c`, `476B8.c`) |
 | Liga/desliga o motor (PWM: mais fraco = pulsos mais espaçados) | `Pad_Update` (`59B08.c`) → `__osMotorAccess` (`port/src/os_hw.c`) |
 | Port | `Port_InputRumble`: no PC só gamepads (`port/src/input.c`, compilado no Android como `Port_InputRumbleHost`) |
-| Android | `app/src/main/cpp/android/haptics.c`: gamepads como no PC; **sem gamepad, o vibrador do celular** (SDL haptic "VIBRATOR_SERVICE" → `VibrationEffect`), pulsos de 160 ms renovados enquanto o jogo liga o motor, amplitude = rumble strength. Permissão `VIBRATE` no manifest |
+| Android | `app/src/main/cpp/android/haptics.c`: gamepads como no PC (o motor do Rumble Pak via `Port_InputRumbleHost`); **sem gamepad, o vibrador do celular** (SDL haptic "VIBRATOR_SERVICE" → `VibrationEffect` com amplitude), com **perfil adaptativo**: `Pad_Rumble` do jogo é embrulhado (`59D40.c` compilado com `Pad_Rumble=Pad_RumbleGame`) |
 
-Testado no S23: `VibrationThread: Turned on vibrator 0, result = 160`, amplitude 1.0.
+Perfil do vibrador (pedido do André: sair da pista é comum e não pode ser forte/chato;
+batidas continuam fortes):
+
+| Evento | Como é detectado | Vibração (× rumble strength) |
+|---|---|---|
+| Terra/grama/zebra | `Pad_Rumble(ch, 1, 0.5/0.6)` a cada quadro (`1C624.c`) | **sutil**: 12%, pulsos de 150 ms renovados |
+| Raspar na parede/carro | contatos leves (`28C70.c`, força < 0,85) repetidos em menos de 200 ms | **suave**: 25%, pulsos de 150 ms |
+| Batida | contato isolado ou forte (`28C70.c`), gatilhos (`2E9D0.c`) | **forte**: 55% a 100% pela força, 35 ms por quadro pedido (90-650 ms) |
+| Carro destruído | `Pad_Rumble(ch, 30, 0.9)` (`1C624.c`) | 100%, ~0,65 s |
+
+Pulsos sutis nunca cortam uma batida em andamento.
+
+Testado no S23 (45 s de corrida): 10 pulsos de raspão a 25%/150 ms; batidas a 55% (175 ms),
+66%, 95% e 100% (350 ms).
 
 ## Menu Cheats (fase 5)
 

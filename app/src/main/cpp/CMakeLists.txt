@@ -138,6 +138,10 @@ target_compile_options(game PRIVATE ${COMMON_FLAGS} -fvisibility=default ${GAME_
     # ARM state, not Thumb, on 32-bit: simpler crash logs while the port is young
     $<$<NOT:$<BOOL:${DD64_64BIT}>>:-marm>)
 
+# Pad_Rumble (src/auto/59D40.c) is wrapped by android/haptics.c, which gives the
+# phone's vibrator a profile per kind of rumble: the game's is Pad_RumbleGame
+set_source_files_properties(${DD64}/src/auto/59D40.c PROPERTIES COMPILE_DEFINITIONS "Pad_Rumble=Pad_RumbleGame")
+
 # inflate_codes (src/auto/51980.c) at -O0: built with clang -O2 for ARM it loops
 # forever on the first race's zip entry (the title screen never comes; found by
 # bisecting the inflate files on a Galaxy S23 Ultra). GCC -O2 on x86 is fine. It
