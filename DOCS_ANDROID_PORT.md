@@ -102,6 +102,48 @@ Pulsos sutis nunca cortam uma batida em andamento.
 Testado no S23 (45 s de corrida): 10 pulsos de raspão a 25%/150 ms; batidas a 55% (175 ms),
 66%, 95% e 100% (350 ms).
 
+## Áudio
+
+Como o jogo toca som: sintetizador libultra (amostras ADPCM da ROM, mixadas pelo microcódigo
+de áudio do RSP, emulado no host em `port/src/audio.c`). **A música é sequenciada** (notas
+tipo MIDI tocadas pelos instrumentos dos bancos de som do jogo), não é áudio gravado.
+
+| O quê | Onde |
+|---|---|
+| Taxa do sintetizador | `src/auto/5D430.c` `Audio_LoadBanks` (`cfg.x2C`): 22050 Hz no N64 |
+| Início de cada música | `src/auto/90EC.c` `Res_LoadSoundBank`, recurso tipo 13: copia a sequência da ROM (`p->x4`..`p->x8`) e chama `Seq_StartWithBank`; handle em `D_8011EEE0` |
+| Volume / fades da música | `Sound_SetVolume` (`66B24.c`) com a chave `D_8011EEE0`; `Sound_FadeOutAll` (`66960.c`) bit 2 = música (vozes com `sfxId == 0`) |
+| Pitch das vozes | `AudioVoice_UpdatePitch` (`676B4.c`) → `alSynSetPitch` → `alResampleParam` (`7438C.c`, caso 7): razão pura, assume 22050 Hz |
+| Reverb | `alFxNew` (`71F34.c`): atrasos em amostras |
+
+**Synth quality (`[audio] synth_rate`, página sound):** 22050 (N64) ou **44100 (padrão no
+Android)**. A 44100 o resampler recebe metade da razão, os atrasos do reverb dobram e o
+low-pass mantém o corte: mesmo tom e mesmo reverb, sem o teto de 11 kHz do N64 (agudos
+mais limpos, sem aliasing nos instrumentos transpostos para cima). Medido no S23: mesma
+fundamental (531 vs 564 cruzamentos/s), mesmo nível (RMS 4471 vs 4541). O heap de áudio do
+N64 (0x35B60 em 0x800D3200) só tinha 6 KB livres; a 44100 o sintetizador usa um heap próprio
+de 512 KB no topo da RAM do port (`Port_SynthHeapSize`, o heap principal termina abaixo,
+`5C480.c`).
+
+**Músicas substitutas (`port/src/music.c`):** se existir
+`Android/data/io.github.dedecidao.dd64.debug/files/Data/Music/song_XXXXXXXX.ogg` (ou `.mp3`),
+ela toca no lugar da música do jogo, em loop, num stream SDL próprio; a música original
+continua rodando em silêncio (o fluxo do jogo espera por ela), e o slider de música e os
+fades vão para o arquivo. Decoders: stb_vorbis 1.22 e dr_mp3 (domínio público,
+`external/dd64/port/third_party`). Mono ou estéreo, qualquer taxa (o SDL converte).
+
+As 13 músicas (id = onde a sequência começa na ROM; ordem do "playsong" das opções do jogo):
+
+| id | Onde toca |
+|---|---|
+| `song_00D9A7B0` | tela de título / menus |
+| `song_00DAF910`, `song_00D90F00`, `song_00DA6330`, `song_00D89010`, `song_00DB7650`, `song_00DAC320`, `song_00DB3880`, `song_00DBB960`, `song_00DA0180`, `song_00DBEF30`, `song_00D972A0`, `song_00DC4FB0` | playsong (corridas/arenas) |
+
+**Dump para remasterizar:** `DD64_MUSICDUMP=1` no `Data/env.txt` grava cada música tocada em
+`Data/MusicDump/song_XXXXXXXX.wav` (a saída do jogo enquanto aquela música é a atual; para a
+música pura, use o "playsong" nas opções, onde não há efeitos). Fluxo: dump → remasterizar/
+substituir → salvar como `.ogg` (Vorbis q6+, 44,1/48 kHz) com o mesmo nome em `Data/Music`.
+
 ## Menu Cheats (fase 5)
 
 Página **cheats** no menu de PC (PC e Android), `external/dd64/port/src/options.c`
