@@ -31,6 +31,9 @@ multi-player, "press z-button for options menu", "press r-button for pc options"
 | "Could not load ROM" depois de atualizar | Activity recriada sem o extra do intent | `GameActivity` usa `files/rom/dd64.z64` como padrão |
 | **Crash com Z + baixo na tela Game Mode / opções** (fase 1) | `D_800BAD10` (tabela do menu de opções) é *definido* em `47F6C.c` e *também* posto em 0x800BAD10 pelo `dd64_syms.ld`. Com `-fvisibility=hidden` o clang acessava relativo ao PC, como se o .so estivesse carregado no endereço 0: `OptionsMenu_Next` lia 0x800BAD10 + endereço de carga (0x5AFC1D10) | Objetos do jogo com `-fvisibility=default`: os 5 globais definidos no jogo e fixados pelos syms (`D_800B7DFC`, `D_800B7F8C`, `D_800B8244`, `D_800BAD10`, `D_800BBD94`) passam pela GOT, que tem o endereço absoluto |
 
+| **Tela preta nas classes Professional/Legend** (19/11) | Essas classes correm espelhadas (`D_800958A1`, `2CF18.c`): `View_SetupSplitScreen` (`633F0.c`) dá largura negativa à vista, `Gfx_SetViewport2` (`19DC0.c`) um viewport com escala X negativa, e o jogo inverte o culling da pista (`19F90.c`). `gfx_calc_and_set_viewport` calculava a borda esquerda como centro − escala: com escala negativa, a área 3D ia para fora da tela (x 320-640), e o culling invertido apagava as faces visíveis | `port/fast3d/gfx_pc.cpp`: área = centro ± \|escala\|, e X espelhado na transformação de cada vértice (e nos quadros interpolados), como o RSP faz antes do teste de winding. Vale também para o PC |
+| **Crash ao salvar recorde no Time Trials** (19/11) | `Records_Draw` (`4A128.c`, tela de novos recordes) formata os tempos num local de 8 bytes; `Time_Format` (`EC94.c`) fazia `sprintf("%1d:%2d.%2d")` inteiro ali e só depois cortava: um tempo que não cabe (minutos ≥ 10, recorde não definido) estoura o buffer. No N64, corrupção silenciosa da pilha; no Android (stack protector do NDK) `__stack_chk_fail` → abort | `Time_Format` formata num buffer grande e copia só os `len` bytes, como o N64 deixava |
+
 Regra geral: **um `.so` 32-bit (PIC) não é o exe de endereço fixo do PC**. Todo símbolo
 do jogo num endereço N64 absoluto tem de ser acessado pela GOT, nunca relativo ao PC.
 No código do port (visibilidade hidden), usar `Port_N64ToHost(endereço)` em vez de
@@ -164,6 +167,8 @@ Os flags são reaplicados a cada leitura dos controles (`Port_InputNoteMenuPad`)
 códigos digitados no jogo continuam funcionando. Valem para os 4 jogadores.
 
 ## Testes no celular (adb)
+
+- `DD64_POKE=frame:end=valor,...` e `DD64_GOTO=frame:modo` (`android/touch.c`): escrever na RAM do jogo e trocar de modo, para chegar a uma tela sem jogar até ela. Tabela de modos (ROM, init de cada modo no fim da entrada anterior): 0x22 novos recordes, 0x23 digitar o nome, 0x24 recordes, 0x27 resultados do time trial.
 
 - Script: `C:\Users\Admin\Documents\claudeProjects\DD64-android-logs\test-run.ps1`
   (`-Install`, `-Env "DD64_PRESS=...;DD64_GFXLOG=1"`, `-Wait`): abre o `GameActivity`
