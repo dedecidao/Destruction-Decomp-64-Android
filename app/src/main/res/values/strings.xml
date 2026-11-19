@@ -13,6 +13,7 @@
     <string name="rom_read_error">Não foi possível ler o arquivo: %1$s</string>
     <string name="touch_title">Controles touch</string>
     <string name="touch_enabled">Mostrar controles na tela</string>
+    <string name="touch_arrows">Direção com setas (cruzeta) em vez do analógico</string>
     <string name="touch_hide_with_gamepad">Esconder quando um controle estiver conectado</string>
     <string name="touch_opacity">Opacidade</string>
     <string name="touch_scale">Tamanho</string>

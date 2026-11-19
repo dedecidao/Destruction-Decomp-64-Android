@@ -10,6 +10,8 @@ final class Settings {
     static final String TOUCH_OPACITY = "touch_opacity";
     static final String TOUCH_SCALE = "touch_scale";
     static final String HIDE_WITH_GAMEPAD = "touch_hide_with_gamepad";
+    /** Steering with arrows (a compact cross) instead of the floating analog stick */
+    static final String ARROWS = "touch_arrows";
 
     private Settings() {}
 
@@ -19,6 +21,10 @@ final class Settings {
 
     static boolean touchEnabled(Context c) {
         return prefs(c).getBoolean(TOUCH, true);
+    }
+
+    static boolean arrows(Context c) {
+        return prefs(c).getBoolean(ARROWS, false);
     }
 
     static boolean hideWithGamepad(Context c) {

@@ -17,9 +17,12 @@ import java.util.List;
  * The on-screen N64 controller, drawn above the game.
  *
  * Layout (landscape), sized in dp and scaled by the launcher's "touch size":
- *   left half       analog stick: it appears where the thumb lands
+ *   left half       analog stick: it appears where the thumb lands; or, with the
+ *                   launcher's "arrows" option, a compact cross: left and right
+ *                   (big, for steering) and up and down (small, for the menus),
+ *                   each the stick at full tilt that way
  *   right, bottom   A (gas, the biggest), B (brake) to its left, Z below B
- *   right, above    R, and the four C buttons
+ *   right, above    R, and C-Up (the camera: the only C button the game uses)
  *   top corners     L (left) and Start (centre)
  *
  * A finger can slide from one button to another (A to B to brake, say).
@@ -32,6 +35,9 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
     static final int CONT_L = 0x0020, CONT_R = 0x0010;
     static final int CONT_CU = 0x0008, CONT_CD = 0x0004, CONT_CL = 0x0002, CONT_CR = 0x0001;
     static final int STICK_MAX = 80; // N64 units at full tilt
+    // The arrows (launcher option): not N64 buttons, the stick's axes at full tilt
+    static final int ARROW_LEFT = 0x10000, ARROW_RIGHT = 0x20000, ARROW_UP = 0x40000, ARROW_DOWN = 0x80000;
+    static final int ARROWS_MASK = ARROW_LEFT | ARROW_RIGHT | ARROW_UP | ARROW_DOWN;
 
     private static native void nativeSetState(int buttons, int x, int y);
 
@@ -63,6 +69,7 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
     private final Paint mText = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float mDensity, mScale, mOpacity;
     private final boolean mHideWithGamepad;
+    private final boolean mArrows;
     private final InputManager mInput;
 
     // Stick
@@ -81,15 +88,20 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
         mScale = Settings.touchScale(context);
         mOpacity = Settings.touchOpacity(context);
         mHideWithGamepad = Settings.hideWithGamepad(context);
+        mArrows = Settings.arrows(context);
 
         mButtons.add(new Button("A", CONT_A, -90, -90, 46));
         mButtons.add(new Button("B", CONT_B, -190, -60, 36));
         mButtons.add(new Button("Z", CONT_Z, -280, -45, 30));
         mButtons.add(new Button("R", CONT_R, -70, -215, 32));
-        mButtons.add(new Button("C▲", CONT_CU, -190, -230, 22));
-        mButtons.add(new Button("C▼", CONT_CD, -190, -150, 22));
-        mButtons.add(new Button("C◀", CONT_CL, -230, -190, 22));
-        mButtons.add(new Button("C▶", CONT_CR, -150, -190, 22));
+        // C-Up only (the camera); the game makes no real use of C-Down, C-Left, C-Right
+        mButtons.add(new Button("C▲", CONT_CU, -190, -200, 26));
+        if (mArrows) {
+            mButtons.add(new Button("◀", ARROW_LEFT, 70, -90, 44));
+            mButtons.add(new Button("▶", ARROW_RIGHT, 185, -90, 44));
+            mButtons.add(new Button("▲", ARROW_UP, 127, -185, 26));
+            mButtons.add(new Button("▼", ARROW_DOWN, 127, -30, 22));
+        }
         mButtons.add(new Button("L", CONT_L, 70, 50, 30));
         mButtons.add(new Button("START", CONT_START, 0, 40, 28)); // dx 0: centred
         mStickRadius = 70 * mDensity * mScale;
@@ -213,7 +225,7 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
         if (b != null) {
             mPointerBits[id] = b.bit;
             performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-        } else if (mStickPointer < 0 && x < getWidth() * 0.45f && y > getHeight() * 0.25f) {
+        } else if (!mArrows && mStickPointer < 0 && x < getWidth() * 0.45f && y > getHeight() * 0.25f) {
             mStickPointer = id;
             mStickBaseX = mStickX = x;
             mStickBaseY = mStickY = y;
@@ -278,10 +290,15 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
     private void updateButtons() {
         int bits = currentBits();
         for (Button b : mButtons) b.pressed = (bits & b.bit) != 0;
+        if (mArrows) {
+            // the same axes as the analog stick, at full tilt (both ways at once cancel)
+            mOutX = ((bits & ARROW_RIGHT) != 0 ? STICK_MAX : 0) - ((bits & ARROW_LEFT) != 0 ? STICK_MAX : 0);
+            mOutY = ((bits & ARROW_UP) != 0 ? STICK_MAX : 0) - ((bits & ARROW_DOWN) != 0 ? STICK_MAX : 0);
+        }
     }
 
     private void send() {
-        int bits = currentBits();
+        int bits = currentBits() & ~ARROWS_MASK; // the arrows go out as the stick
         if (bits != mLastButtons || mOutX != mLastX || mOutY != mLastY) {
             mLastButtons = bits;
             mLastX = mOutX;
@@ -318,6 +335,9 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
             c.drawText(b.label, b.cx, b.cy + size * 0.35f, mText);
             mText.setTextSize(old);
         }
+        if (mArrows) {
+            return; // no stick: the arrows are drawn with the buttons
+        }
         // Stick: a hint where it is when idle, the base and knob while held
         float bx, by;
         if (mStickPointer >= 0) {
@@ -345,6 +365,7 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
             case CONT_A: return 0xFF3F7FFF; // blue, as on the N64 pad
             case CONT_B: return 0xFF2ECC40; // green
             case CONT_CU: case CONT_CD: case CONT_CL: case CONT_CR: return 0xFFFFD000; // yellow
+            case ARROW_LEFT: case ARROW_RIGHT: case ARROW_UP: case ARROW_DOWN: return 0xFFFFFFFF;
             case CONT_START: return 0xFFFF4136; // red
             default: return 0xFFDDDDDD;
         }

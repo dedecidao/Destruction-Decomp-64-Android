@@ -36,7 +36,51 @@ JNIEXPORT void JNICALL Java_io_github_dedecidao_dd64_TouchControlsView_nativeSet
     SDL_SetAtomicInt(&sTouchActive, 1);
 }
 
+/*
+ * Testing aids (Data/env.txt), run on the game thread as it reads the pads:
+ *   DD64_POKE=frame:addr=value[,addr=value...]  32-bit words into N64 RAM (host order)
+ *   DD64_GOTO=frame:mode                        Game_SetNextMode(mode, 1) at that frame
+ * For reaching a screen without playing up to it (a record's name entry is 0x24).
+ */
+extern unsigned gfx_presents;
+void Game_SetNextMode(s32 mode, s32 arg);
+
+static void testAids(void) {
+    static int pokeDone, gotoDone;
+    const char *p;
+
+    if (!pokeDone && (p = SDL_getenv("DD64_POKE")) != NULL && gfx_presents >= (unsigned)SDL_atoi(p)) {
+        const char *q = SDL_strchr(p, ':');
+        pokeDone = 1;
+        while (q != NULL) {
+            u32 addr = (u32)SDL_strtoul(q + 1, (char **)&q, 16), val;
+            u32 *dst = (u32 *)Port_N64ToHost(addr);
+            if (q == NULL || *q != '=') {
+                break;
+            }
+            val = (u32)SDL_strtoul(q + 1, (char **)&q, 16);
+            if (dst != NULL) {
+                *dst = val;
+                Port_Log("test: poke %08X = %08X", addr, val);
+            }
+            q = (q != NULL && *q == ',') ? q : NULL;
+        }
+    }
+    if (!gotoDone && (p = SDL_getenv("DD64_GOTO")) != NULL && gfx_presents >= (unsigned)SDL_atoi(p)) {
+        const char *q = SDL_strchr(p, ':');
+        gotoDone = 1;
+        if (q != NULL) {
+            s32 mode = (s32)SDL_strtol(q + 1, NULL, 0);
+            Port_Log("test: game mode %#x", mode);
+            Game_SetNextMode(mode, 1);
+        }
+    }
+}
+
 void Port_InputGetPad(int channel, OSContPad *out) {
+    if (channel == 0) {
+        testAids();
+    }
     Port_InputGetPadHost(channel, out);
     if (channel == 0 && SDL_GetAtomicInt(&sTouchActive)) {
         u32 stick = (u32)SDL_GetAtomicInt(&sTouchStick);
