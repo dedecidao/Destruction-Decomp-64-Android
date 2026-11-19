@@ -39,6 +39,10 @@ endif()
 option(DD64_ARM64_LINK "Link the game on arm64 (once the 64-bit conversion is done)" OFF)
 option(DD64_PROBE "Build only the address-space probe (android/probe.c) as libdd64.so" OFF)
 
+# Preloaded by wrap.sh in 32-bit debug builds: reserves 0x80000000 before ART starts
+# (android/reserve/dd64reserve.c, app/src/debug/resources/lib/armeabi-v7a/wrap.sh)
+add_library(dd64reserve SHARED ${CMAKE_CURRENT_SOURCE_DIR}/android/reserve/dd64reserve.c)
+
 if(DD64_PROBE)
     set(SDL_SHARED ON CACHE BOOL "" FORCE)
     set(SDL_STATIC OFF CACHE BOOL "" FORCE)
@@ -90,6 +94,9 @@ file(GLOB PORT_GAME_SRC CONFIGURE_DEPENDS ${DD64}/port/game/*.c)
 set(COMMON_FLAGS
     -g -O2 -gdwarf-4
     -fno-strict-aliasing -fwrapv -fno-omit-frame-pointer
+    # Plain char is signed on the N64 (KMC GCC, MIPS) and on the x86 PC build, but
+    # unsigned on ARM by default
+    -fsigned-char
     # No fused multiply-add: the N64 FPU rounds each step, and so must we
     -ffp-contract=off
     # Hidden symbols: the N64 addresses in dd64_syms.ld resolve at link time
@@ -125,9 +132,23 @@ target_compile_options(game PRIVATE ${COMMON_FLAGS} ${GAME_LENIENT} ${GAME_SHADO
     # ARM state, not Thumb, on 32-bit: simpler crash logs while the port is young
     $<$<NOT:$<BOOL:${DD64_64BIT}>>:-marm>)
 
+# inflate_codes (src/auto/51980.c) at -O0: built with clang -O2 for ARM it loops
+# forever on the first race's zip entry (the title screen never comes; found by
+# bisecting the inflate files on a Galaxy S23 Ultra). GCC -O2 on x86 is fine. It
+# only runs while loading, so the speed does not matter; the clang cause is still open.
+set_source_files_properties(${DD64}/src/auto/51980.c PROPERTIES COMPILE_OPTIONS -O0)
+
 # ---- Static data conversion table (DWARF of the game objects) ----
 set(GEN_WIDTHS ${GEN_DIR}/dd64_widths.c)
-if(HAVE_SYMS)
+# clang emits no DWARF for extern variables (only for BPF), and the game declares
+# its globals extern, so gen_widths.py finds almost nothing in the ARM objects
+# (20 values instead of ~4800): the static data then stays big-endian. The table
+# from the PC build (GCC) is used instead: i686 with -malign-double and ARM EABI
+# lay the game's types out alike (4-byte pointers, 8-byte aligned doubles).
+set(WIDTHS_FILE ${REPO_ROOT}/symbols/dd64_widths.c CACHE FILEPATH "Static data widths from the PC build")
+if(HAVE_SYMS AND EXISTS ${WIDTHS_FILE} AND NOT DD64_64BIT)
+    set(GEN_WIDTHS ${WIDTHS_FILE})
+elseif(HAVE_SYMS)
     file(GENERATE OUTPUT ${GEN_DIR}/game_objects.txt CONTENT "$<JOIN:$<TARGET_OBJECTS:game>,\n>\n")
     # GNU objdump that reads 32-bit ARM ELF (gen_widths.py parses its --dwarf=info);
     # CI installs binutils-arm-linux-gnueabihf
@@ -175,6 +196,9 @@ target_link_libraries(port PRIVATE SDL3::SDL3-shared)
 # Port files whose host calls get an Android version (see each file in android/)
 set_source_files_properties(${DD64}/port/src/input.c PROPERTIES COMPILE_DEFINITIONS
     "Port_InputGetPad=Port_InputGetPadHost;Port_InputConnected=Port_InputConnectedHost")
+# MSAA off: black frames on the Adreno 740 with a multisample target (android/gpu_caps.c)
+set_source_files_properties(${DD64}/port/fast3d/gfx_sdlgpu.cpp PROPERTIES COMPILE_DEFINITIONS
+    "SDL_GPUTextureSupportsSampleCount=DD64A_GPUTextureSupportsSampleCount")
 set_source_files_properties(${DD64}/port/src/config.c ${DD64}/port/src/rom.c PROPERTIES COMPILE_DEFINITIONS
     "SDL_GetBasePath=DD64A_GetBasePath")
 

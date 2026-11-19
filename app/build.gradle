@@ -13,7 +13,10 @@ android {
 
     defaultConfig {
         applicationId = 'io.github.dedecidao.dd64'
-        minSdk = 26
+        // 29 (Android 10): native ELF TLS. Below it the NDK emulates TLS, and the shadow
+        // hooks' __thread state (port/src/shadow.c, every game memory access) went through
+        // __emutls_get_address: track loading took minutes
+        minSdk = 29
         targetSdk = 35
         versionCode = 1
         versionName = '0.1.0'
@@ -26,8 +29,8 @@ android {
                 arguments '-DANDROID_STL=c++_static',
                           "-DDD64_ARM64_LINK=${arm64Link ? 'ON' : 'OFF'}",
                           "-DDD64_PROBE=${probe ? 'ON' : 'OFF'}"
-                // libSDL3.so and libdd64.so
-                targets 'SDL3-shared', 'dd64'
+                // libSDL3.so, libdd64.so, and libdd64reserve.so for wrap.sh
+                targets 'SDL3-shared', 'dd64', 'dd64reserve'
             }
         }
     }
