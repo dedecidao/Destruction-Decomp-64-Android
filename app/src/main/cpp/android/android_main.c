@@ -307,9 +307,8 @@ int main(int argc, char **argv) {
     SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
     Port_ConfigLoad();
     gPortConfig.fullscreen = 1;
-    /* Android has OpenGL ES, not the desktop OpenGL of port/fast3d/gfx_opengl.cpp:
-       always SDL_gpu on Vulkan (the manifest requires Vulkan) */
-    gPortConfig.renderer = 1;
+    /* The renderer: Vulkan (SDL_gpu) by default on Android (port/src/config.c);
+       OpenGL can be picked in the video page */
     SDL_SetAppMetadata("Destruction Derby 64", "0.1", "io.github.dedecidao.dd64");
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO)) {
         Port_Fatal("SDL_Init: %s", SDL_GetError());

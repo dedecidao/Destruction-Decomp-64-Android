@@ -8,6 +8,7 @@
 #   ram_arm.c       the N64 RAM image at 0x80000000, with ARM jump stubs
 #   paths.c         the game's folder: the app's external files dir
 #   touch.c         the on-screen controls, merged into player 1's pad
+#   haptics.c       rumble: gamepads, or the phone's vibrator when there is none
 #   stubs.c         raphnet adapters and the sampling profiler: not on Android
 #
 # The symbol tables come from symbols/dd64.syms (names and N64 addresses only,
@@ -128,9 +129,18 @@ target_compile_definitions(game PRIVATE TARGET_PC TARGET_ANDROID NON_MATCHING
 # ARM EABI already aligns doubles and u64s to 8 bytes in structs, as the N64 does
 # (the PC build needs -malign-double for that), and passes the hidden struct
 # return pointer in r0, as MIPS does in a0.
-target_compile_options(game PRIVATE ${COMMON_FLAGS} ${GAME_LENIENT} ${GAME_SHADOW}
+# Default visibility for the game: a global a game file defines that dd64_syms.ld also
+# places at its N64 address (D_800BAD10, the options menu's table, and four more) is then
+# reached through the GOT, which the linker fills with that absolute address. Hidden,
+# clang reaches it pc-relative, as if the .so were loaded at 0: the options menu's Z +
+# down read 0x800BAD10 + the load address and crashed. exports.map still keeps them local.
+target_compile_options(game PRIVATE ${COMMON_FLAGS} -fvisibility=default ${GAME_LENIENT} ${GAME_SHADOW}
     # ARM state, not Thumb, on 32-bit: simpler crash logs while the port is young
     $<$<NOT:$<BOOL:${DD64_64BIT}>>:-marm>)
+
+# Pad_Rumble (src/auto/59D40.c) is wrapped by android/haptics.c, which gives the
+# phone's vibrator a profile per kind of rumble: the game's is Pad_RumbleGame
+set_source_files_properties(${DD64}/src/auto/59D40.c PROPERTIES COMPILE_DEFINITIONS "Pad_Rumble=Pad_RumbleGame")
 
 # inflate_codes (src/auto/51980.c) at -O0: built with clang -O2 for ARM it loops
 # forever on the first race's zip entry (the title screen never comes; found by
@@ -195,7 +205,7 @@ target_compile_options(port PRIVATE ${COMMON_FLAGS} -Wall -Wno-unused-parameter 
 target_link_libraries(port PRIVATE SDL3::SDL3-shared)
 # Port files whose host calls get an Android version (see each file in android/)
 set_source_files_properties(${DD64}/port/src/input.c PROPERTIES COMPILE_DEFINITIONS
-    "Port_InputGetPad=Port_InputGetPadHost;Port_InputConnected=Port_InputConnectedHost")
+    "Port_InputGetPad=Port_InputGetPadHost;Port_InputConnected=Port_InputConnectedHost;Port_InputRumble=Port_InputRumbleHost")
 # MSAA off: black frames on the Adreno 740 with a multisample target (android/gpu_caps.c)
 set_source_files_properties(${DD64}/port/fast3d/gfx_sdlgpu.cpp PROPERTIES COMPILE_DEFINITIONS
     "SDL_GPUTextureSupportsSampleCount=DD64A_GPUTextureSupportsSampleCount")
