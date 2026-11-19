@@ -128,7 +128,12 @@ target_compile_definitions(game PRIVATE TARGET_PC TARGET_ANDROID NON_MATCHING
 # ARM EABI already aligns doubles and u64s to 8 bytes in structs, as the N64 does
 # (the PC build needs -malign-double for that), and passes the hidden struct
 # return pointer in r0, as MIPS does in a0.
-target_compile_options(game PRIVATE ${COMMON_FLAGS} ${GAME_LENIENT} ${GAME_SHADOW}
+# Default visibility for the game: a global a game file defines that dd64_syms.ld also
+# places at its N64 address (D_800BAD10, the options menu's table, and four more) is then
+# reached through the GOT, which the linker fills with that absolute address. Hidden,
+# clang reaches it pc-relative, as if the .so were loaded at 0: the options menu's Z +
+# down read 0x800BAD10 + the load address and crashed. exports.map still keeps them local.
+target_compile_options(game PRIVATE ${COMMON_FLAGS} -fvisibility=default ${GAME_LENIENT} ${GAME_SHADOW}
     # ARM state, not Thumb, on 32-bit: simpler crash logs while the port is young
     $<$<NOT:$<BOOL:${DD64_64BIT}>>:-marm>)
 
