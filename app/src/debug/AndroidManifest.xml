@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Debug builds only: GameActivity can be started from adb for automated tests,
-     with the ROM path in the string extra "rom" (am start -n .../io.github.dedecidao.dd64.GameActivity) -->
+     with the ROM path in the string extra "rom" (am start -n com.costelinhagames.wreckedmetal.debug/io.github.dedecidao.dd64.GameActivity) -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <application>

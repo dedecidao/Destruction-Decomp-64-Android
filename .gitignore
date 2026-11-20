@@ -21,3 +21,9 @@ dd64.elf
 *.iml
 .vscode/
 .DS_Store
+
+# release signing (never commit the key)
+*.p12
+*.jks
+*.keystore
+signing.properties

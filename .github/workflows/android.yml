@@ -9,6 +9,10 @@ jobs:
   apk:
     name: APK (armeabi-v7a, full game)
     runs-on: ubuntu-24.04
+    env:
+      # The Wrecked Metal release key exists only as this repository's secrets (not in
+      # forks, not for pull requests from forks): without it the signed APK is skipped
+      HAS_RELEASE_KEY: ${{ secrets.WM_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,6 +44,23 @@ jobs:
         with:
           name: dd64-android-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Signed release APK (the Wrecked Metal key)
+        if: env.HAS_RELEASE_KEY == 'true'
+        env:
+          WM_KEYSTORE_BASE64: ${{ secrets.WM_KEYSTORE_BASE64 }}
+          WM_KEYSTORE_PASSWORD: ${{ secrets.WM_KEYSTORE_PASSWORD }}
+        run: |
+          echo "$WM_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/wm.p12"
+          WM_KEYSTORE_FILE="$RUNNER_TEMP/wm.p12" gradle --no-daemon assembleRelease
+          rm -f "$RUNNER_TEMP/wm.p12"
+
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_RELEASE_KEY == 'true'
+        with:
+          name: wreckedmetal-release-apk
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
   arm64-check:
@@ -121,9 +142,11 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           mkdir -p out
-          cp dl/dd64-android-debug-apk/*.apk out/dd64-armeabi-v7a-debug.apk
+          # the signed APK (the one players install) when the release key is set up
+          if ls dl/wreckedmetal-release-apk/*.apk >/dev/null 2>&1; then cp dl/wreckedmetal-release-apk/*.apk out/wreckedmetal-armeabi-v7a.apk; fi
+          cp dl/dd64-android-debug-apk/*.apk out/wreckedmetal-armeabi-v7a-debug.apk
           if [ -f dl/dd64-arm64-probe-apk/dd64-arm64-probe.apk ]; then cp dl/dd64-arm64-probe-apk/dd64-arm64-probe.apk out/; fi
           gh release delete nightly --repo "$REPO" --yes --cleanup-tag || true
           gh release create nightly out/*.apk --repo "$REPO" --prerelease --target "$GITHUB_SHA" \
             --title "Nightly (${GITHUB_SHA::7})" \
-            --notes "Builds automáticos do último commit em main. Sem dados da ROM: escolha a sua ROM no app."
+            --notes "Automatic builds of the latest commit on main. Install wreckedmetal-armeabi-v7a.apk (the -debug one is for testing). No ROM data included: pick your own ROM in the app."

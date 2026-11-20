@@ -6,13 +6,32 @@ def abis = (project.findProperty('dd64.abis') ?: 'armeabi-v7a,arm64-v8a').split(
 def arm64Link = (project.findProperty('dd64.arm64Link') ?: 'false').toBoolean()
 def probe = (project.findProperty('dd64.probe') ?: 'false').toBoolean()
 
+// The Wrecked Metal release key (Costelinha Games). Never in the repository: CI gets it
+// from the WM_KEYSTORE_* secrets, a local build from ~/.wreckedmetal/signing.properties
+// (or -Pwm.signing=<file>). Without it the release APK is signed with the debug key.
+def releaseSigning = null
+if (System.getenv('WM_KEYSTORE_FILE')) {
+    releaseSigning = [storeFile: System.getenv('WM_KEYSTORE_FILE'),
+                      storePassword: System.getenv('WM_KEYSTORE_PASSWORD'),
+                      keyAlias: System.getenv('WM_KEY_ALIAS') ?: 'wreckedmetal',
+                      keyPassword: System.getenv('WM_KEY_PASSWORD') ?: System.getenv('WM_KEYSTORE_PASSWORD')]
+} else {
+    def f = file(project.findProperty('wm.signing') ?: "${System.getProperty('user.home')}/.wreckedmetal/signing.properties")
+    if (f.isFile()) {
+        def p = new Properties()
+        f.withInputStream { p.load(it) }
+        releaseSigning = [storeFile: p.storeFile, storePassword: p.storePassword,
+                          keyAlias: p.keyAlias, keyPassword: p.keyPassword]
+    }
+}
+
 android {
     namespace = 'io.github.dedecidao.dd64'
     compileSdk = 35
     ndkVersion = '27.2.12479018'
 
     defaultConfig {
-        applicationId = 'io.github.dedecidao.dd64'
+        applicationId = 'com.costelinhagames.wreckedmetal'
         // 29 (Android 10): native ELF TLS. Below it the NDK emulates TLS, and the shadow
         // hooks' __thread state (port/src/shadow.c, every game memory access) went through
         // __emutls_get_address: track loading took minutes
@@ -40,6 +59,22 @@ android {
         main {
             java.srcDirs += ['../external/SDL/android-project/app/src/main/java']
         }
+        // wrap.sh (lib/armeabi-v7a), which reserves the game's RAM at 0x80000000: the
+        // release build needs it as much as the debug one (not the debug manifest)
+        release {
+            resources.srcDirs += ['src/debug/resources']
+        }
+    }
+
+    signingConfigs {
+        if (releaseSigning != null) {
+            release {
+                storeFile = file(releaseSigning.storeFile)
+                storePassword = releaseSigning.storePassword
+                keyAlias = releaseSigning.keyAlias
+                keyPassword = releaseSigning.keyPassword
+            }
+        }
     }
 
     externalNativeBuild {
@@ -58,8 +93,11 @@ android {
         }
         release {
             minifyEnabled = false
-            // Signed with the debug key until there is a release key (docs/PLANO.md)
-            signingConfig = signingConfigs.debug
+            // Debuggable because Android only runs wrap.sh (the 0x80000000 reservation the
+            // 32-bit build needs) for debuggable apps. Fine for APKs from GitHub; a store
+            // build waits for arm64 (no reservation needed there) or another reservation.
+            debuggable = true
+            signingConfig = releaseSigning != null ? signingConfigs.release : signingConfigs.debug
         }
     }
 

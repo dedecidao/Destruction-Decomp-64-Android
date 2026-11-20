@@ -1,6 +1,6 @@
 /*
  * The game's folder on Android: the app's own external files directory,
- *   /storage/emulated/0/Android/data/io.github.dedecidao.dd64/files/
+ *   /storage/emulated/0/Android/data/com.costelinhagames.wreckedmetal/files/
  * which a file manager (or a PC over USB) can reach, and which needs no storage
  * permission. Data/Saves, Data/Logs, dd64.ini and Data/Textures/fonts_hd live
  * there, as next to the executable on PC.
