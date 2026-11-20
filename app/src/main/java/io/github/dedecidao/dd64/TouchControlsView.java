@@ -22,7 +22,8 @@ import java.util.List;
  *                   (big, for steering) and up and down (small, for the menus),
  *                   each the stick at full tilt that way
  *   right, bottom   A (gas, the biggest), B (brake) to its left, Z below B
- *   right, above    R, and C-Up (the camera: the only C button the game uses)
+ *   right, above    R, and C-Up (the camera: the only C button the game uses);
+ *                   in the Fidelity profile all four C buttons, a diamond
  *   top corners     L (left) and Start (centre)
  *
  * A finger can slide from one button to another (A to B to brake, say).
@@ -82,20 +83,29 @@ public class TouchControlsView extends View implements InputManager.InputDeviceL
     private int mLastButtons = -1, mLastX, mLastY;
     private boolean mGamepadPresent;
 
-    public TouchControlsView(Context context) {
+    /** fidelity: the N64 controller as it was (stick and all four C buttons, no arrows) */
+    public TouchControlsView(Context context, boolean fidelity) {
         super(context);
         mDensity = context.getResources().getDisplayMetrics().density;
         mScale = Settings.touchScale(context);
         mOpacity = Settings.touchOpacity(context);
         mHideWithGamepad = Settings.hideWithGamepad(context);
-        mArrows = Settings.arrows(context);
+        mArrows = !fidelity && Settings.arrows(context);
 
         mButtons.add(new Button("A", CONT_A, -90, -90, 46));
         mButtons.add(new Button("B", CONT_B, -190, -60, 36));
         mButtons.add(new Button("Z", CONT_Z, -280, -45, 30));
         mButtons.add(new Button("R", CONT_R, -70, -215, 32));
-        // C-Up only (the camera); the game makes no real use of C-Down, C-Left, C-Right
-        mButtons.add(new Button("C▲", CONT_CU, -190, -200, 26));
+        if (fidelity) {
+            // the Fidelity profile: the N64's four C buttons, a diamond above B
+            mButtons.add(new Button("C▲", CONT_CU, -190, -238, 22));
+            mButtons.add(new Button("C◀", CONT_CL, -236, -192, 22));
+            mButtons.add(new Button("C▶", CONT_CR, -144, -192, 22));
+            mButtons.add(new Button("C▼", CONT_CD, -190, -146, 22));
+        } else {
+            // C-Up only (the camera); the game makes no real use of C-Down, C-Left, C-Right
+            mButtons.add(new Button("C▲", CONT_CU, -190, -200, 26));
+        }
         if (mArrows) {
             mButtons.add(new Button("◀", ARROW_LEFT, 70, -90, 44));
             mButtons.add(new Button("▶", ARROW_RIGHT, 185, -90, 44));

@@ -113,6 +113,12 @@ static void phoneRumble(s32 frames, f32 strength) {
         return;
     }
     now = SDL_GetTicks();
+    if (gPortConfig.fidelity) {
+        /* the Fidelity profile: as the Rumble Pak, every call the game's own strength and
+           length (no subtle surface or scrape pulses) */
+        play(h, strength, (Uint32)SDL_clamp(frames * IMPACT_MS_PER_FRAME, IMPACT_MIN_MS, IMPACT_MAX_MS));
+        return;
+    }
     if (frames == 1) {
         soft(h, SURFACE_AMP * strength / 0.5f, now); /* rough surface, every frame */
         return;

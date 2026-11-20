@@ -305,11 +305,21 @@ int main(int argc, char **argv) {
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
     SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
+    {
+        int a;
+        for (a = 2; a < argc; a++) {
+            if (argv[a] != NULL && SDL_strcmp(argv[a], "--fidelity") == 0) {
+                /* the launcher's Play Fidelity (GameActivity): before the settings, which
+                   then come from dd64-fidelity.ini (port/src/config.c) */
+                gPortConfig.fidelity = 1;
+            }
+        }
+    }
     Port_ConfigLoad();
     gPortConfig.fullscreen = 1;
     /* The renderer: Vulkan (SDL_gpu) by default on Android (port/src/config.c);
        OpenGL can be picked in the video page */
-    SDL_SetAppMetadata("Destruction Derby 64", "0.1", "io.github.dedecidao.dd64");
+    SDL_SetAppMetadata("Wrecked Metal 64 DX", "0.1", "io.github.dedecidao.dd64");
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO)) {
         Port_Fatal("SDL_Init: %s", SDL_GetError());
     }

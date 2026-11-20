@@ -113,6 +113,33 @@ Teste no aparelho: 95 s no menu e 90 s de corrida sem nenhuma reabertura.
 controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
 ("Direção com setas (cruzeta)").
 
+## Wrecked Metal 64 DX: dois modos (20/11)
+
+O projeto passou a se chamar **Wrecked Metal 64 DX** (app, launcher, repositório
+`dedecidao/Wrecked-Metal-64-DX`). O `applicationId` continua `io.github.dedecidao.dd64`:
+mudá-lo faria do APK um app novo (sem as configurações, saves e a ROM já importada).
+
+O launcher tem dois botões:
+
+- **PLAY WRECKED METAL** (o principal): o jogo customizado, como até aqui, com `dd64.ini`.
+- **Play Fidelity** (discreto): o jogo como era no N64. `GameActivity` recebe o extra
+  `profile=fidelity` e passa `--fidelity` ao nativo (`android_main.c`, e `port/src/main.c` no PC),
+  que liga `gPortConfig.fidelity` antes de carregar as configurações:
+  - arquivo próprio, `dd64-fidelity.ini` (um modo não muda o outro; os saves são os mesmos);
+  - padrões (arquivo novo, upgrade de padrões, "restore defaults"): hud boxes on, sharp text off,
+    seamless sky off, clean cut-outs off, synth 22050 Hz (`kFidelity` em `config.c`);
+  - forçados (customizações do port, fora do menu): analog pedals off, right stick camera off
+    (o analógico direito é os botões C), touch steering off;
+  - página controls só com rumble, rumble strength, stick dead zone e stick range
+    (`kControlsFidelity`/`kPagesFidelity` em `options.c`);
+  - touch: analógico e os quatro botões C em losango (`TouchControlsView`);
+  - vibração do celular como o Rumble Pak: cada chamada com a força e a duração do jogo, sem os
+    pulsos sutis de superfície e raspão (`haptics.c`).
+
+Testado no S23 Ultra: Fidelity numa corrida a 60 fps com as caixas do HUD, os quatro C e as
+bordas escuras do N64; a página controls só com as linhas do N64; o `dd64.ini` do Wrecked Metal
+intocado.
+
 ## Vibração (fase 4)
 
 Caminho do rumble do jogo até o motor:
