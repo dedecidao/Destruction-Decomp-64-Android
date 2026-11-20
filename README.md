@@ -1,5 +1,7 @@
 <div align="center">
 
+**English** | [Português (Brasil)](README.pt-BR.md) | [简体中文](README.zh-CN.md)
+
 # Wrecked Metal
 
 **A native Android port of a classic N64 demolition racer, rebuilt from decompiled C, and the start of something bigger.**
