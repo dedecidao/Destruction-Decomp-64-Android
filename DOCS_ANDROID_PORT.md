@@ -102,6 +102,13 @@ aberturas de stream são **serializadas** (na partida ele via o stream ainda nul
 abria o primeiro e abria um segundo: dois streams lendo o mesmo anel, ~110 underruns/s). Ele
 só tenta de novo uma abertura que falhou. A música substituta também troca o stream sob lock.
 
+**Engasgos de 60 para ~40 fps (20/11, à tarde):** o próprio watchdog. Ele lia o relógio (`now`)
+antes de pegar o lock, e a thread de áudio podia carimbar `sTakenNs` nesse intervalo: `now - last`
+em u64 dava a volta para um valor enorme, um "travamento" falso, e o dispositivo era reaberto na
+thread principal (dezenas de ms cada vez, dezenas de vezes por sessão, mesmo no menu parado).
+Agora o tempo só conta quando `now` passou do último carimbo (o mesmo na música, `sFedNs`).
+Teste no aparelho: 95 s no menu e 90 s de corrida sem nenhuma reabertura.
+
 **Direção com setas:** `[input] touch_arrows` no dd64.ini, a mesma chave no **menu R >
 controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
 ("Direção com setas (cruzeta)").
