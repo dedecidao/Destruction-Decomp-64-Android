@@ -141,6 +141,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <Button
+            android:id="@+id/share_log"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/share_log"
+            android:textAllCaps="false"
+            android:textColor="#C8CCD4"
+            android:textSize="15sp" />
+
         <TextView
             android:id="@+id/data_folder"
             android:layout_width="match_parent"

@@ -36,7 +36,15 @@ public class GameActivity extends SDLActivity {
             // intent that has no extra: the ROM is where the launcher keeps it
             rom = LauncherActivity.romFile(this).getAbsolutePath();
         }
-        return fidelity() ? new String[] { rom, "--fidelity" } : new String[] { rom };
+        String app = "--app=" + getPackageName();
+        try {
+            android.content.pm.PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+            app += " " + pi.versionName + " (" + pi.versionCode + ")";
+        } catch (Exception e) {
+            // the version only goes in the log
+        }
+        app += fidelity() ? ", Fidelity" : ", Wrecked Metal";
+        return fidelity() ? new String[] { rom, "--fidelity", app } : new String[] { rom, app };
     }
 
     boolean fidelity() {

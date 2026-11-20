@@ -19,6 +19,7 @@
 #include <dirent.h>
 #include <pthread.h>
 #include <sys/prctl.h>
+#include <sys/system_properties.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -287,6 +288,41 @@ static void loadEnvFile(void) {
     }
     fclose(f);
 }
+/*
+ * The device sheet at the top of dd64.log, so a log sent from another phone or
+ * tablet says what ran it (the GPU and its driver follow from SDL_gpu, the frame
+ * rate every 30 s from video.c). argv carries the app's package and version
+ * (GameActivity: --app=...).
+ */
+static void logDevice(int argc, char **argv) {
+    char man[PROP_VALUE_MAX] = "", model[PROP_VALUE_MAX] = "", dev[PROP_VALUE_MAX] = "";
+    char rel[PROP_VALUE_MAX] = "", sdk[PROP_VALUE_MAX] = "", socMan[PROP_VALUE_MAX] = "";
+    char soc[PROP_VALUE_MAX] = "", board[PROP_VALUE_MAX] = "", hw[PROP_VALUE_MAX] = "";
+    char abis[PROP_VALUE_MAX] = "";
+    const char *appInfo = "?";
+    int a;
+
+    __system_property_get("ro.product.manufacturer", man);
+    __system_property_get("ro.product.model", model);
+    __system_property_get("ro.product.device", dev);
+    __system_property_get("ro.build.version.release", rel);
+    __system_property_get("ro.build.version.sdk", sdk);
+    __system_property_get("ro.soc.manufacturer", socMan); /* Android 12+ */
+    __system_property_get("ro.soc.model", soc);
+    __system_property_get("ro.board.platform", board);
+    __system_property_get("ro.hardware", hw);
+    __system_property_get("ro.product.cpu.abilist", abis);
+    for (a = 2; a < argc; a++) {
+        if (argv[a] != NULL && SDL_strncmp(argv[a], "--app=", 6) == 0) {
+            appInfo = argv[a] + 6;
+        }
+    }
+    Port_Log("device: %s %s (%s), Android %s (SDK %s)", man, model, dev, rel, sdk);
+    Port_Log("device: SoC %s %s, board %s, hardware %s; ABIs %s; the game runs %s", socMan[0] ? socMan : "?",
+             soc[0] ? soc : "?", board, hw, abis, sizeof(void *) == 4 ? "32-bit (armeabi-v7a)" : "64-bit (arm64-v8a)");
+    Port_Log("app: %s", appInfo);
+}
+
 int main(int argc, char **argv) {
     Port_RamReserve(); /* 0x80000000 up, before anything else can take it */
     openLog();
@@ -294,6 +330,7 @@ int main(int argc, char **argv) {
     if (chdir(DD64A_GetBasePath()) != 0) {
         Port_Log("chdir %s failed", DD64A_GetBasePath());
     }
+    logDevice(argc, argv);
     loadEnvFile();
     installCrashHandler();
     startStackSampler();

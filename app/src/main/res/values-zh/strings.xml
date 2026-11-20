@@ -20,4 +20,6 @@
     <string name="touch_opacity">不透明度</string>
     <string name="touch_scale">大小</string>
     <string name="data_folder">存档、日志、dd64.ini 和高清字体位于：\n%1$s/Data</string>
+    <string name="share_log">分享日志</string>
+    <string name="share_log_none">还没有日志：请先玩一次。</string>
 </resources>

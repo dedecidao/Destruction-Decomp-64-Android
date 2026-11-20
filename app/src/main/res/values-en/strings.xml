@@ -20,4 +20,6 @@
     <string name="touch_opacity">Opacity</string>
     <string name="touch_scale">Size</string>
     <string name="data_folder">Saves, logs, dd64.ini and HD fonts are in:\n%1$s/Data</string>
+    <string name="share_log">Share log</string>
+    <string name="share_log_none">No log yet: play once first.</string>
 </resources>

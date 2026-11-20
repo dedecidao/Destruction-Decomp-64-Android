@@ -30,6 +30,13 @@
             </intent-filter>
         </activity>
 
+        <!-- The launcher's "Share log": the last session's dd64.log, read-only, per share -->
+        <provider
+            android:name=".LogProvider"
+            android:authorities="${applicationId}.logs"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <activity
             android:name=".GameActivity"
             android:exported="false"
