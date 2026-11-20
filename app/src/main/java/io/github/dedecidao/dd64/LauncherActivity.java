@@ -22,7 +22,8 @@ import java.util.concurrent.Executors;
 
 /**
  * Start screen: pick the ROM once (Storage Access Framework, no storage
- * permission), then play.
+ * permission), then play: PLAY WRECKED METAL (the customized game) or, smaller,
+ * Play Fidelity (the game as the N64 had it, GameActivity's "fidelity" profile).
  *
  * The ROM is read through the document picker, converted to .z64 byte order,
  * checked against the SHA1 of Destruction Derby 64 (USA) and kept in the app's
@@ -36,7 +37,7 @@ public class LauncherActivity extends Activity {
     private final ExecutorService mIo = Executors.newSingleThreadExecutor();
     private final Handler mMain = new Handler(Looper.getMainLooper());
     private TextView mStatus;
-    private Button mPlay, mPick;
+    private Button mPlay, mPlayFidelity, mPick;
 
     static File romFile(Activity a) {
         return new File(new File(a.getFilesDir(), "rom"), "dd64.z64");
@@ -48,10 +49,12 @@ public class LauncherActivity extends Activity {
         setContentView(R.layout.activity_launcher);
         mStatus = findViewById(R.id.status);
         mPlay = findViewById(R.id.play);
+        mPlayFidelity = findViewById(R.id.play_fidelity);
         mPick = findViewById(R.id.pick_rom);
 
         mPick.setOnClickListener(v -> pickRom());
-        mPlay.setOnClickListener(v -> play());
+        mPlay.setOnClickListener(v -> play(false));
+        mPlayFidelity.setOnClickListener(v -> play(true));
 
         CheckBox touch = findViewById(R.id.touch_enabled);
         touch.setChecked(Settings.touchEnabled(this));
@@ -101,6 +104,7 @@ public class LauncherActivity extends Activity {
     private void refresh() {
         boolean have = romFile(this).isFile() && romFile(this).length() == ROM_SIZE;
         mPlay.setEnabled(have);
+        mPlayFidelity.setEnabled(have);
         mStatus.setText(have ? R.string.rom_ready : R.string.rom_missing);
         mPick.setText(have ? R.string.pick_other_rom : R.string.pick_rom);
     }
@@ -123,6 +127,7 @@ public class LauncherActivity extends Activity {
     private void importRom(Uri uri) {
         mPick.setEnabled(false);
         mPlay.setEnabled(false);
+        mPlayFidelity.setEnabled(false);
         mStatus.setText(R.string.rom_checking);
         mIo.execute(() -> {
             String error = null;
@@ -203,9 +208,13 @@ public class LauncherActivity extends Activity {
         return null;
     }
 
-    private void play() {
+    /** Wrecked Metal (the customized game), or the Fidelity profile (the N64 game as it was) */
+    private void play(boolean fidelity) {
         Intent i = new Intent(this, GameActivity.class);
         i.putExtra(GameActivity.EXTRA_ROM, romFile(this).getAbsolutePath());
+        if (fidelity) {
+            i.putExtra(GameActivity.EXTRA_PROFILE, GameActivity.PROFILE_FIDELITY);
+        }
         startActivity(i);
     }
 

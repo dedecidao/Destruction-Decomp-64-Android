@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tagline">一个雄心勃勃的定制项目，建立在 64 平台上最出色的赛车与破坏物理之上。</string>
+    <string name="play">PLAY WRECKED METAL</string>
+    <string name="play_fidelity">Play Fidelity（原版）</string>
+    <string name="fidelity_hint">Fidelity：还原 N64 上的原版游戏，使用原版 HUD 和 N64 手柄布局，不含任何定制。</string>
+    <string name="pick_rom">选择 ROM</string>
+    <string name="pick_other_rom">更换 ROM</string>
+    <string name="rom_missing">请选择你自己的 Destruction Derby 64（美版）ROM（.z64、.n64 或 .v64）。它会被校验并复制到应用的私有存储中，不会离开本设备。</string>
+    <string name="rom_ready">ROM 校验通过，可以开始游戏。</string>
+    <string name="rom_checking">正在校验 ROM…</string>
+    <string name="rom_wrong_size">文件不是 16 MB，因此不是卡带镜像。</string>
+    <string name="rom_not_n64">该文件不是 Nintendo 64 ROM。</string>
+    <string name="rom_wrong_sha1">该 ROM 不是 Destruction Derby 64（美版）。其 SHA1 为 %1$s。</string>
+    <string name="rom_read_error">无法读取文件：%1$s</string>
+    <string name="touch_title">触屏控制</string>
+    <string name="touch_enabled">显示屏幕按键</string>
+    <string name="touch_arrows">用方向键（十字键）代替摇杆转向</string>
+    <string name="touch_hide_with_gamepad">连接手柄时隐藏</string>
+    <string name="touch_opacity">不透明度</string>
+    <string name="touch_scale">大小</string>
+    <string name="data_folder">存档、日志、dd64.ini 和高清字体位于：\n%1$s/Data</string>
+</resources>

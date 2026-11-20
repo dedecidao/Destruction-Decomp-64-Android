@@ -17,6 +17,9 @@ import java.io.FileReader;
  */
 public class GameActivity extends SDLActivity {
     public static final String EXTRA_ROM = "rom";
+    /** "fidelity": the game as the N64 had it (the launcher's Play Fidelity); else Wrecked Metal */
+    public static final String EXTRA_PROFILE = "profile";
+    public static final String PROFILE_FIDELITY = "fidelity";
 
     private TouchControlsView mTouch;
 
@@ -33,7 +36,11 @@ public class GameActivity extends SDLActivity {
             // intent that has no extra: the ROM is where the launcher keeps it
             rom = LauncherActivity.romFile(this).getAbsolutePath();
         }
-        return new String[] { rom };
+        return fidelity() ? new String[] { rom, "--fidelity" } : new String[] { rom };
+    }
+
+    boolean fidelity() {
+        return PROFILE_FIDELITY.equals(getIntent().getStringExtra(EXTRA_PROFILE));
     }
 
     @Override
@@ -41,7 +48,7 @@ public class GameActivity extends SDLActivity {
         super.onCreate(savedInstanceState);
         applyOutputResolution();
         if (mLayout != null && Settings.touchEnabled(this)) {
-            mTouch = new TouchControlsView(this);
+            mTouch = new TouchControlsView(this, fidelity());
             mLayout.addView(mTouch, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         }
@@ -70,7 +77,7 @@ public class GameActivity extends SDLActivity {
 
     /** An integer key of dd64.ini (in the app's external files folder), or `def` */
     private int readIniInt(String key, int def) {
-        File ini = new File(getExternalFilesDir(null), "dd64.ini");
+        File ini = new File(getExternalFilesDir(null), fidelity() ? "dd64-fidelity.ini" : "dd64.ini");
         try (BufferedReader r = new BufferedReader(new FileReader(ini))) {
             String line;
             while ((line = r.readLine()) != null) {

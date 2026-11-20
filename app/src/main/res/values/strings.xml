@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Destruction Derby 64</string>
-    <string name="play">Jogar</string>
+    <string name="app_name">Wrecked Metal</string>
+    <string name="tagline">Um ambicioso projeto de customização em cima da melhor física de corridas e destruição que o 64 proporcionou.</string>
+    <string name="play">PLAY WRECKED METAL</string>
+    <string name="play_fidelity">Play Fidelity</string>
+    <string name="fidelity_hint">Fidelity: o jogo como era no N64, com o HUD original e o controle do N64, sem as customizações.</string>
     <string name="pick_rom">Escolher ROM</string>
     <string name="pick_other_rom">Trocar ROM</string>
     <string name="rom_missing">Escolha a sua ROM de Destruction Derby 64 (USA) em .z64, .n64 ou .v64. Ela é verificada e copiada para a área privada do app, e não sai do aparelho.</string>

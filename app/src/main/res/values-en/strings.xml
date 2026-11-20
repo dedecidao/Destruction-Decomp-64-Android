@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="play">Play</string>
+    <string name="tagline">An ambitious customization project built on the best racing and destruction physics the 64 ever delivered.</string>
+    <string name="play">PLAY WRECKED METAL</string>
+    <string name="play_fidelity">Play Fidelity</string>
+    <string name="fidelity_hint">Fidelity: the game as it was on the N64, with the original HUD and the N64 controller, without the customizations.</string>
     <string name="pick_rom">Pick ROM</string>
     <string name="pick_other_rom">Change ROM</string>
     <string name="rom_missing">Pick your Destruction Derby 64 (USA) ROM (.z64, .n64 or .v64). It is checked and copied into the app\'s private storage, and never leaves the device.</string>

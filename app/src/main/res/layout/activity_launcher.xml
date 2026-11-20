@@ -16,8 +16,16 @@
             android:layout_height="wrap_content"
             android:text="@string/app_name"
             android:textColor="#FFFFFF"
-            android:textSize="26sp"
+            android:textSize="28sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/tagline"
+            android:textColor="#9AA0AA"
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/status"
@@ -27,28 +35,57 @@
             android:textColor="#C8CCD4"
             android:textSize="15sp" />
 
+        <!-- The main button: Wrecked Metal, the customized game -->
+        <Button
+            android:id="@+id/play"
+            android:layout_width="match_parent"
+            android:layout_height="84dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#D9481C"
+            android:letterSpacing="0.08"
+            android:text="@string/play"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- Discreet: the game as the N64 had it -->
             <Button
-                android:id="@+id/play"
+                android:id="@+id/play_fidelity"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="@string/play"
-                android:textSize="18sp" />
+                android:text="@string/play_fidelity"
+                android:textAllCaps="false"
+                android:textColor="#C8CCD4"
+                android:textSize="15sp" />
 
             <Button
                 android:id="@+id/pick_rom"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
-                android:text="@string/pick_rom" />
+                android:text="@string/pick_rom"
+                android:textAllCaps="false"
+                android:textColor="#8A909C"
+                android:textSize="15sp" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/fidelity_hint"
+            android:textColor="#6F7580"
+            android:textSize="12sp" />
 
         <TextView
             android:layout_width="wrap_content"
