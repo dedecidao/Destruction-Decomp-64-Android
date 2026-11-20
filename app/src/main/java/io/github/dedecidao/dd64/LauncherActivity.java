@@ -72,6 +72,8 @@ public class LauncherActivity extends Activity {
         bindSeek(R.id.touch_opacity, Settings.TOUCH_OPACITY, 10, 100, 60);
         bindSeek(R.id.touch_scale, Settings.TOUCH_SCALE, 60, 160, 100);
 
+        findViewById(R.id.share_log).setOnClickListener(v -> shareLog());
+
         TextView folder = findViewById(R.id.data_folder);
         File ext = getExternalFilesDir(null);
         folder.setText(getString(R.string.data_folder, ext != null ? ext.getAbsolutePath() : "?"));
@@ -216,6 +218,21 @@ public class LauncherActivity extends Activity {
             i.putExtra(GameActivity.EXTRA_PROFILE, GameActivity.PROFILE_FIDELITY);
         }
         startActivity(i);
+    }
+
+    /** The last session's log, to send with a bug or device report */
+    private void shareLog() {
+        if (!LogProvider.logFile(this).isFile()) {
+            android.widget.Toast.makeText(this, R.string.share_log_none, android.widget.Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(Intent.EXTRA_STREAM, LogProvider.uri(this));
+        send.putExtra(Intent.EXTRA_SUBJECT, "Wrecked Metal log (" + android.os.Build.MANUFACTURER + " "
+                + android.os.Build.MODEL + ", Android " + android.os.Build.VERSION.RELEASE + ")");
+        send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(send, getString(R.string.share_log)));
     }
 
     @Override

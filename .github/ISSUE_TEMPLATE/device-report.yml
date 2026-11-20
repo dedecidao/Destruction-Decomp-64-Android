@@ -1,0 +1,79 @@
+name: Device report
+description: How Wrecked Metal runs on your phone or tablet (works great, slow, crashes...)
+title: "[Device] <model>: <works / slow / crashes>"
+labels: ["device report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Wrecked Metal! A report with the log attached is worth ten without one.
+        **Never attach or link ROM files.**
+  - type: input
+    id: model
+    attributes:
+      label: Device model
+      placeholder: "Samsung Galaxy S20 FE 5G (SM-G781B)"
+    validations:
+      required: true
+  - type: input
+    id: chip
+    attributes:
+      label: Chip (SoC)
+      description: "Settings > About phone, or the \"device: SoC\" line at the top of the log"
+      placeholder: "Snapdragon 865"
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      placeholder: "Android 13 (One UI 5.1)"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Wrecked Metal version
+      placeholder: "v0.1.0-beta, or the nightly date"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - PLAY WRECKED METAL
+        - Play Fidelity
+        - Both
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: How does it run?
+      options:
+        - Smooth (60 fps)
+        - Playable but drops frames
+        - Too slow to play
+        - Crashes or does not start
+        - Graphics or audio glitches
+    validations:
+      required: true
+  - type: input
+    id: fps
+    attributes:
+      label: Frame rate
+      description: "The counter in the top left corner, or the \"fps:\" lines in the log"
+      placeholder: "60 in races, 45 in Swamp"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Steps, track, settings you changed (resolution, anti-aliasing, draw distance...)
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: In the app tap **Share log** (or take Android/data/com.costelinhagames.wreckedmetal/files/Data/Logs/dd64.log right after the problem) and drag the file here.
+    validations:
+      required: true
