@@ -31,6 +31,9 @@ multi-player, "press z-button for options menu", "press r-button for pc options"
 | "Could not load ROM" depois de atualizar | Activity recriada sem o extra do intent | `GameActivity` usa `files/rom/dd64.z64` como padrão |
 | **Crash com Z + baixo na tela Game Mode / opções** (fase 1) | `D_800BAD10` (tabela do menu de opções) é *definido* em `47F6C.c` e *também* posto em 0x800BAD10 pelo `dd64_syms.ld`. Com `-fvisibility=hidden` o clang acessava relativo ao PC, como se o .so estivesse carregado no endereço 0: `OptionsMenu_Next` lia 0x800BAD10 + endereço de carga (0x5AFC1D10) | Objetos do jogo com `-fvisibility=default`: os 5 globais definidos no jogo e fixados pelos syms (`D_800B7DFC`, `D_800B7F8C`, `D_800B8244`, `D_800BAD10`, `D_800BBD94`) passam pela GOT, que tem o endereço absoluto |
 
+| **Tela preta nas classes Professional/Legend** (19/11) | Essas classes correm espelhadas (`D_800958A1`, `2CF18.c`): `View_SetupSplitScreen` (`633F0.c`) dá largura negativa à vista, `Gfx_SetViewport2` (`19DC0.c`) um viewport com escala X negativa, e o jogo inverte o culling da pista (`19F90.c`). `gfx_calc_and_set_viewport` calculava a borda esquerda como centro − escala: com escala negativa, a área 3D ia para fora da tela (x 320-640), e o culling invertido apagava as faces visíveis | `port/fast3d/gfx_pc.cpp`: área = centro ± \|escala\|, e X espelhado na transformação de cada vértice (e nos quadros interpolados), como o RSP faz antes do teste de winding. Vale também para o PC |
+| **Crash ao salvar recorde no Time Trials** (19/11) | `Records_Draw` (`4A128.c`, tela de novos recordes) formata os tempos num local de 8 bytes; `Time_Format` (`EC94.c`) fazia `sprintf("%1d:%2d.%2d")` inteiro ali e só depois cortava: um tempo que não cabe (minutos ≥ 10, recorde não definido) estoura o buffer. No N64, corrupção silenciosa da pilha; no Android (stack protector do NDK) `__stack_chk_fail` → abort | `Time_Format` formata num buffer grande e copia só os `len` bytes, como o N64 deixava |
+
 Regra geral: **um `.so` 32-bit (PIC) não é o exe de endereço fixo do PC**. Todo símbolo
 do jogo num endereço N64 absoluto tem de ser acessado pela GOT, nunca relativo ao PC.
 No código do port (visibilidade hidden), usar `Port_N64ToHost(endereço)` em vez de
@@ -61,9 +64,9 @@ Padrões do Android e o porquê:
 | 3d resolution | 720p | maior custo de GPU/bateria; 1080p disponível |
 | anti-aliasing | **2x** | GPUs de celular são *tile-based*: as amostras do MSAA ficam na memória do tile e 2x custa pouco. 4x fica **preto** com SDL_gpu na Adreno 740 (testado), então o máximo no Android é 2x (`android/gpu_caps.c`) |
 | n64 aa blur | on (avançado) | o visual do N64; precisa de MSAA ≥ 2x |
-| texture filter | n64 3-point (avançado) | o filtro real do N64 (3 amostras), custo quase igual ao bilinear |
-| anisotropy | 16x (avançado) | barato em GPUs modernas, chão nítido |
-| draw distance | x16 (só x8/x16) | geometria do N64 é leve |
+| texture filter | bilinear (avançado) | 20/11: configuração ideal do André (fiel, lisa) |
+| anisotropy | 4x (avançado) | 20/11: 16x contribuía para quedas a 55 fps |
+| draw distance | x8 (x8/x16) | 20/11: x16 contribuía para quedas a 55 fps |
 | hud boxes | off (avançado) | pedido |
 | screen shape | widescreen (avançado), sem "stretched" | pedido |
 | skip intros | on (avançado) | pedido |
@@ -75,6 +78,33 @@ Padrões do Android e o porquê:
 | drones / set all drones to / cpu unlockables | 1x / default / off, removidos | decisão do André: os drones faziam carros voarem na largada das arenas |
 | raphnet | oculto | não é compilado no Android |
 | keyboard drives, raphnet, controller paks, páginas keys/pad, display, frame limit | ocultos | não se aplicam ao celular |
+
+## Versão "fiel, lisa e sem bugs" (20/11)
+
+Padrões do Android definidos pelo André: resolution 720p, 3d resolution 720p, vsync on,
+anti-aliasing 2x, draw distance x8, anisotropy 4x, texture filter bilinear
+(`config_version` 3 os aplica a um dd64.ini antigo).
+
+**Áudio que não voltava depois de uma interrupção (ligação, outro app):** o mesmo bug do
+Yakumo. O SDL usa um stream AAudio de baixa latência (MMAP) que o Android pode tomar do app
+em segundo plano; ao voltar, o SDL tenta reiniciar o stream roubado, recebe
+`AAUDIO_ERROR_DISCONNECTED` e só registra no log (a recuperação dele depende do callback de
+erro do AAudio, que não dispara para um stream roubado enquanto pausado). A abertura também
+pode falhar assim ("no output device ... running silent"). Correção: watchdog de reprodução
+(`port/src/audio.c`, chamado a cada quadro em `events.c`; a música substituta em `music.c`):
+em primeiro plano, se o dispositivo não pede som há 500 ms, o stream é fechado e aberto de
+novo; se não abriu, nova tentativa em 1 s, dobrando até 30 s. `DD64_NO_AUDIO_RECOVERY`
+desliga.
+
+Ajustes dos testes no aparelho (20/11): o watchdog só age com a **janela em foco** (um seletor
+de apps sobre o jogo pausa a activity mas não o loop, e ele reabria o áudio à toa); e as
+aberturas de stream são **serializadas** (na partida ele via o stream ainda nulo enquanto o jogo
+abria o primeiro e abria um segundo: dois streams lendo o mesmo anel, ~110 underruns/s). Ele
+só tenta de novo uma abertura que falhou. A música substituta também troca o stream sob lock.
+
+**Direção com setas:** `[input] touch_arrows` no dd64.ini, a mesma chave no **menu R >
+controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
+("Direção com setas (cruzeta)").
 
 ## Vibração (fase 4)
 
@@ -164,6 +194,8 @@ Os flags são reaplicados a cada leitura dos controles (`Port_InputNoteMenuPad`)
 códigos digitados no jogo continuam funcionando. Valem para os 4 jogadores.
 
 ## Testes no celular (adb)
+
+- `DD64_POKE=frame:end=valor,...` e `DD64_GOTO=frame:modo` (`android/touch.c`): escrever na RAM do jogo e trocar de modo, para chegar a uma tela sem jogar até ela. Tabela de modos (ROM, init de cada modo no fim da entrada anterior): 0x22 novos recordes, 0x23 digitar o nome, 0x24 recordes, 0x27 resultados do time trial.
 
 - Script: `C:\Users\Admin\Documents\claudeProjects\DD64-android-logs\test-run.ps1`
   (`-Install`, `-Env "DD64_PRESS=...;DD64_GFXLOG=1"`, `-Wait`): abre o `GameActivity`

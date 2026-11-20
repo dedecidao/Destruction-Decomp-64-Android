@@ -67,6 +67,13 @@
             android:textColor="#C8CCD4" />
 
         <CheckBox
+            android:id="@+id/touch_arrows"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/touch_arrows"
+            android:textColor="#C8CCD4" />
+
+        <CheckBox
             android:id="@+id/touch_hide_with_gamepad"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

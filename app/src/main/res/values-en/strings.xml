@@ -12,6 +12,7 @@
     <string name="rom_read_error">Could not read the file: %1$s</string>
     <string name="touch_title">Touch controls</string>
     <string name="touch_enabled">Show on-screen controls</string>
+    <string name="touch_arrows">Steer with arrows (a d-pad) instead of the analog stick</string>
     <string name="touch_hide_with_gamepad">Hide them while a gamepad is connected</string>
     <string name="touch_opacity">Opacity</string>
     <string name="touch_scale">Size</string>
