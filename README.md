@@ -1,10 +1,10 @@
-# Wrecked Metal 64 DX
+# Wrecked Metal
 
 **English** · [Português](#português) · [中文](#中文)
 
 > An ambitious customization project built on the best racing and destruction physics the 64 ever delivered.
 
-Wrecked Metal 64 DX runs the game's decompiled C code natively on Android: compiled for ARM,
+Wrecked Metal runs the game's decompiled C code natively on Android: compiled for ARM,
 no emulator, Vulkan graphics (SDL_gpu), touch controls and gamepads. On top of it comes a
 growing layer of customizations: higher resolution and anti-aliasing, longer draw distance,
 44.1 kHz audio, recorded-music replacement, adaptive haptics, a free camera, analog pedals and more.
@@ -12,7 +12,7 @@ growing layer of customizations: higher resolution and anti-aliasing, longer dra
 > **Status: beta in progress.** Tested on a Galaxy S23 Ultra (armeabi-v7a build).
 > 64-bit (`arm64-v8a`) is being converted. See the [plan](docs/PLANO.md).
 
-[💬 Community: ideas, bugs, setups → Discussions](https://github.com/dedecidao/Wrecked-Metal-64-DX/discussions)
+[💬 Community: ideas, bugs, setups → Discussions](https://github.com/dedecidao/Wrecked-Metal/discussions)
 
 ## Two ways to play
 
@@ -74,8 +74,8 @@ JDK 17, Gradle 8.14 (or Android Studio), Android SDK with NDK 27 and CMake 3.22,
 `binutils-arm-linux-gnueabihf`.
 
 ```sh
-git clone --recursive https://github.com/dedecidao/Wrecked-Metal-64-DX
-cd Wrecked-Metal-64-DX
+git clone --recursive https://github.com/dedecidao/Wrecked-Metal
+cd Wrecked-Metal
 gradle assembleDebug
 # APK in app/build/outputs/apk/debug/
 ```
@@ -104,7 +104,7 @@ The game link uses `symbols/dd64.syms` (names and addresses only, no ROM data); 
 
 > Um ambicioso projeto de customização em cima da melhor física de corridas e destruição que o 64 proporcionou.
 
-Wrecked Metal 64 DX roda o código C decompilado do jogo nativamente no Android: compilado para
+Wrecked Metal roda o código C decompilado do jogo nativamente no Android: compilado para
 ARM, sem emulador, com gráficos Vulkan (SDL_gpu), controles touch e gamepads. Por cima disso vem
 uma camada crescente de customizações: resolução e anti-aliasing maiores, distância de visão
 maior, áudio a 44,1 kHz, troca da música por faixas gravadas, vibração adaptativa, câmera livre,
@@ -113,7 +113,7 @@ pedais analógicos e mais.
 > **Status: beta em andamento.** Testado num Galaxy S23 Ultra (build armeabi-v7a). A versão
 > 64-bit (`arm64-v8a`) está em conversão. Veja o [plano](docs/PLANO.md).
 
-[💬 Comunidade: ideias, bugs, configurações → Discussions](https://github.com/dedecidao/Wrecked-Metal-64-DX/discussions)
+[💬 Comunidade: ideias, bugs, configurações → Discussions](https://github.com/dedecidao/Wrecked-Metal/discussions)
 
 ### Dois jeitos de jogar
 
@@ -158,14 +158,14 @@ inglês acima (os caminhos são os mesmos).
 
 > 一个雄心勃勃的定制项目，建立在 64 平台上最出色的赛车与破坏物理之上。
 
-Wrecked Metal 64 DX 在 Android 上原生运行游戏反编译后的 C 代码：编译为 ARM 程序，无需模拟器，
+Wrecked Metal 在 Android 上原生运行游戏反编译后的 C 代码：编译为 ARM 程序，无需模拟器，
 使用 Vulkan 图形（SDL_gpu），支持触屏与手柄。在此之上是不断扩展的定制内容：更高的分辨率与抗锯齿、
 更远的可视距离、44.1 kHz 音频、录制音乐替换、自适应震动、自由视角、模拟踏板等。
 
 > **状态：Beta 开发中。** 已在 Galaxy S23 Ultra 上测试（armeabi-v7a 版本）。64 位
 > （`arm64-v8a`）正在移植中。
 
-[💬 社区：建议、问题反馈、设置分享 → Discussions](https://github.com/dedecidao/Wrecked-Metal-64-DX/discussions)
+[💬 社区：建议、问题反馈、设置分享 → Discussions](https://github.com/dedecidao/Wrecked-Metal/discussions)
 
 ### 两种游玩方式
 

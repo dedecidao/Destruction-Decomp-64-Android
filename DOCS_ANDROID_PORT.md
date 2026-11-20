@@ -113,10 +113,11 @@ Teste no aparelho: 95 s no menu e 90 s de corrida sem nenhuma reabertura.
 controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
 ("Direção com setas (cruzeta)").
 
-## Wrecked Metal 64 DX: dois modos (20/11)
+## Wrecked Metal: dois modos (20/11)
 
-O projeto passou a se chamar **Wrecked Metal 64 DX** (app, launcher, repositório
-`dedecidao/Wrecked-Metal-64-DX`). O `applicationId` continua `io.github.dedecidao.dd64`:
+O projeto passou a se chamar **Wrecked Metal** (app, launcher, repositório
+`dedecidao/Wrecked-Metal`; por algumas horas foi "Wrecked Metal 64 DX", e o nome final é
+"Wrecked Metal", by Costelinha Games). O `applicationId` continua `io.github.dedecidao.dd64`:
 mudá-lo faria do APK um app novo (sem as configurações, saves e a ROM já importada).
 
 O launcher tem dois botões:
