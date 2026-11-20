@@ -90,7 +90,7 @@ Ferramentas para achar os pontos a mudar: os avisos do clang em arm64
 "arm64 compile check" do CI, e os checadores de `tools/port/` do `port-pc`.
 
 Cada rodada é testada no S23 Ultra via o APK do CI. O log fica em
-`Android/data/io.github.dedecidao.dd64/files/Data/Logs/dd64.log`.
+`Android/data/com.costelinhagames.wreckedmetal/files/Data/Logs/dd64.log`.
 
 ### Fase 3: acabamento
 

@@ -31,7 +31,7 @@ android {
     ndkVersion = '27.2.12479018'
 
     defaultConfig {
-        applicationId = 'io.github.dedecidao.dd64'
+        applicationId = 'com.costelinhagames.wreckedmetal'
         // 29 (Android 10): native ELF TLS. Below it the NDK emulates TLS, and the shadow
         // hooks' __thread state (port/src/shadow.c, every game memory access) went through
         // __emutls_get_address: track loading took minutes

@@ -117,8 +117,10 @@ controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
 
 O projeto passou a se chamar **Wrecked Metal** (app, launcher, repositório
 `dedecidao/Wrecked-Metal`; por algumas horas foi "Wrecked Metal 64 DX", e o nome final é
-"Wrecked Metal", by Costelinha Games). O `applicationId` continua `io.github.dedecidao.dd64`:
-mudá-lo faria do APK um app novo (sem as configurações, saves e a ROM já importada).
+"Wrecked Metal", by Costelinha Games). O `applicationId` passou a ser `com.costelinhagames.wreckedmetal` (20/11, antes da primeira
+release pública; o debug é `com.costelinhagames.wreckedmetal.debug`). O `namespace` e o pacote Java
+continuam `io.github.dedecidao.dd64` (nomes JNI). Não mudar o ID de novo: viraria um app novo e
+quebraria as atualizações de quem instalou.
 
 O launcher tem dois botões:
 
@@ -157,8 +159,8 @@ distribuído pelo GitHub; para loja, só depois do arm64 (ou de outra forma de r
 manifest de debug (GameActivity exportada para o adb) não entra no release.
 
 A nightly publica `wreckedmetal-armeabi-v7a.apk` (assinado, o que os jogadores instalam) e
-`wreckedmetal-armeabi-v7a-debug.apk`. O release é `io.github.dedecidao.dd64` e o debug
-`io.github.dedecidao.dd64.debug`: são dois apps no aparelho.
+`wreckedmetal-armeabi-v7a-debug.apk`. O release é `com.costelinhagames.wreckedmetal` e o debug
+`com.costelinhagames.wreckedmetal.debug`: são dois apps no aparelho.
 
 ## Vibração (fase 4)
 
@@ -210,7 +212,7 @@ de 512 KB no topo da RAM do port (`Port_SynthHeapSize`, o heap principal termina
 `5C480.c`).
 
 **Músicas substitutas (`port/src/music.c`):** se existir
-`Android/data/io.github.dedecidao.dd64.debug/files/Data/Music/song_XXXXXXXX.ogg` (ou `.mp3`),
+`Android/data/com.costelinhagames.wreckedmetal.debug/files/Data/Music/song_XXXXXXXX.ogg` (ou `.mp3`),
 ela toca no lugar da música do jogo, em loop, num stream SDL próprio; a música original
 continua rodando em silêncio (o fluxo do jogo espera por ela), e o slider de música e os
 fades vão para o arquivo. Decoders: stb_vorbis 1.22 e dr_mp3 (domínio público,
@@ -258,7 +260,7 @@ códigos digitados no jogo continuam funcionando. Valem para os 4 jogadores.
   (`DD64_PRESS`, `DD64_BOOT`, `DD64_FAKEGAS`, `DD64_GFXLOG`, `DD64_STACKS=<ms>`,
   `DD64_PEEK=end,...`, `DD64_TEXDUMP`, `DD64_SHOT`).
 - O SDL manda caminhos relativos (dumps) para a pasta interna `files/`: `adb shell run-as
-  io.github.dedecidao.dd64.debug ls files`.
+  com.costelinhagames.wreckedmetal.debug ls files`.
 
 ## Memorizado (pedido do André)
 

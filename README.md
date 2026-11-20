@@ -90,7 +90,7 @@ Please don't ask for ROMs in issues or discussions. Those requests will be close
 
 ## Files on your device
 
-Under `Android/data/io.github.dedecidao.dd64/files/`:
+Under `Android/data/com.costelinhagames.wreckedmetal/files/`:
 
 | Path | Contents |
 |---|---|
