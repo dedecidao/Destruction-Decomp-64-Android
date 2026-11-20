@@ -64,9 +64,9 @@ Padrões do Android e o porquê:
 | 3d resolution | 720p | maior custo de GPU/bateria; 1080p disponível |
 | anti-aliasing | **2x** | GPUs de celular são *tile-based*: as amostras do MSAA ficam na memória do tile e 2x custa pouco. 4x fica **preto** com SDL_gpu na Adreno 740 (testado), então o máximo no Android é 2x (`android/gpu_caps.c`) |
 | n64 aa blur | on (avançado) | o visual do N64; precisa de MSAA ≥ 2x |
-| texture filter | n64 3-point (avançado) | o filtro real do N64 (3 amostras), custo quase igual ao bilinear |
-| anisotropy | 16x (avançado) | barato em GPUs modernas, chão nítido |
-| draw distance | x16 (só x8/x16) | geometria do N64 é leve |
+| texture filter | bilinear (avançado) | 20/11: configuração ideal do André (fiel, lisa) |
+| anisotropy | 4x (avançado) | 20/11: 16x contribuía para quedas a 55 fps |
+| draw distance | x8 (x8/x16) | 20/11: x16 contribuía para quedas a 55 fps |
 | hud boxes | off (avançado) | pedido |
 | screen shape | widescreen (avançado), sem "stretched" | pedido |
 | skip intros | on (avançado) | pedido |
@@ -78,6 +78,27 @@ Padrões do Android e o porquê:
 | drones / set all drones to / cpu unlockables | 1x / default / off, removidos | decisão do André: os drones faziam carros voarem na largada das arenas |
 | raphnet | oculto | não é compilado no Android |
 | keyboard drives, raphnet, controller paks, páginas keys/pad, display, frame limit | ocultos | não se aplicam ao celular |
+
+## Versão "fiel, lisa e sem bugs" (20/11)
+
+Padrões do Android definidos pelo André: resolution 720p, 3d resolution 720p, vsync on,
+anti-aliasing 2x, draw distance x8, anisotropy 4x, texture filter bilinear
+(`config_version` 3 os aplica a um dd64.ini antigo).
+
+**Áudio que não voltava depois de uma interrupção (ligação, outro app):** o mesmo bug do
+Yakumo. O SDL usa um stream AAudio de baixa latência (MMAP) que o Android pode tomar do app
+em segundo plano; ao voltar, o SDL tenta reiniciar o stream roubado, recebe
+`AAUDIO_ERROR_DISCONNECTED` e só registra no log (a recuperação dele depende do callback de
+erro do AAudio, que não dispara para um stream roubado enquanto pausado). A abertura também
+pode falhar assim ("no output device ... running silent"). Correção: watchdog de reprodução
+(`port/src/audio.c`, chamado a cada quadro em `events.c`; a música substituta em `music.c`):
+em primeiro plano, se o dispositivo não pede som há 500 ms, o stream é fechado e aberto de
+novo; se não abriu, nova tentativa em 1 s, dobrando até 30 s. `DD64_NO_AUDIO_RECOVERY`
+desliga.
+
+**Direção com setas:** `[input] touch_arrows` no dd64.ini, a mesma chave no **menu R >
+controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
+("Direção com setas (cruzeta)").
 
 ## Vibração (fase 4)
 

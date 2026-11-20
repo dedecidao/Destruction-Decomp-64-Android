@@ -59,7 +59,7 @@ public class LauncherActivity extends Activity {
 
         CheckBox arrows = findViewById(R.id.touch_arrows);
         arrows.setChecked(Settings.arrows(this));
-        arrows.setOnCheckedChangeListener((b, on) -> Settings.prefs(this).edit().putBoolean(Settings.ARROWS, on).apply());
+        arrows.setOnCheckedChangeListener((b, on) -> Settings.setArrows(this, on));
 
         CheckBox hide = findViewById(R.id.touch_hide_with_gamepad);
         hide.setChecked(Settings.hideWithGamepad(this));
@@ -87,6 +87,15 @@ public class LauncherActivity extends Activity {
             @Override public void onStartTrackingTouch(SeekBar bar) {}
             @Override public void onStopTrackingTouch(SeekBar bar) {}
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CheckBox arrows = findViewById(R.id.touch_arrows);
+        if (arrows != null && arrows.isChecked() != Settings.arrows(this)) {
+            arrows.setChecked(Settings.arrows(this)); // changed in the game's controls page
+        }
     }
 
     private void refresh() {
