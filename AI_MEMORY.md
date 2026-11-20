@@ -108,6 +108,13 @@ Last updated: 2026-11-20 (v0.1.1-beta).
 - **60→40 fps stutter**: the audio watchdog's u64 wrap produced false stalls. The watchdog now
   acts only when the window is focused, opens one stream at a time, and reopens AAudio after
   interruptions such as calls.
+- **Audio stream opens are serialized** (`sOpenLock`): without it, at startup the watchdog
+  opened a second AAudio stream and produced ~110 underruns/s.
+- **Never create `files/Data` via adb before the app does**: the folder ends up owned by
+  `shell` and the game can't write its log or save. Let the app create it first.
+- **WSL on the maintainer's PC**: writing big files through `\\wsl.localhost` once truncated
+  `android_main.c`, and passing commands from PowerShell to bash breaks on quotes and `$`.
+  Use a `.sh` script instead.
 - **The idle menu loses about 1 frame every 4 s.** This is still open; an ADPF performance hint
   is the candidate fix.
 - **Cheats left on cause hangs that look like bugs.** Always disable them before a device test.
