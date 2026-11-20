@@ -98,6 +98,15 @@ android {
             // build waits for arm64 (no reservation needed there) or another reservation.
             debuggable = true
             signingConfig = releaseSigning != null ? signingConfigs.release : signingConfigs.debug
+            // The native code as the debug build has it (the game's own files are -O2 in both,
+            // CMakeLists.txt): with CMake's RelWithDebInfo (SDL at -O2, NDEBUG) the 60 Hz clocks
+            // woke late and a race doubled ~1.5% of its frames on a Galaxy S23 Ultra, against
+            // ~0.1% for the debug build, same phone, same race, same moment (20/11)
+            externalNativeBuild {
+                cmake {
+                    arguments '-DCMAKE_BUILD_TYPE=Debug'
+                }
+            }
         }
     }
 

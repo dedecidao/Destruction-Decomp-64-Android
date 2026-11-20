@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds (the .debug app, for development and adb tests): a name of their own, so
+     the phone shows which one is which next to the release "Wrecked Metal" -->
+<resources>
+    <string name="app_name">Wrecked Metal Dev</string>
+</resources>

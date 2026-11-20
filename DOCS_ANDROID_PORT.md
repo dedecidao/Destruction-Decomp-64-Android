@@ -146,17 +146,8 @@ intocado.
 ## Assinatura de release (20/11)
 
 Chave da Costelinha Games: `wreckedmetal-release.p12` (PKCS12, RSA 4096, alias `wreckedmetal`,
-válida até 2054; SHA-256 do certificado `9C:C6:B5:1F:...:B3:9B:9F`). Fica FORA do repositório: no
-PC do André (`Documents\WreckedMetal-signing`, com LEIA-ME) e, para builds locais no WSL, em
-`~/.wreckedmetal/signing.properties`. No CI: secrets `WM_KEYSTORE_BASE64` e `WM_KEYSTORE_PASSWORD`;
-sem eles o APK de release é pulado (forks, PRs de fork).
+válida até 2054;
 
-`app/build.gradle`: `releaseSigning` lê `WM_KEYSTORE_FILE`/`WM_KEYSTORE_PASSWORD` (CI) ou o
-`signing.properties` (`-Pwm.signing=<arquivo>` muda o caminho); sem chave, release usa a chave de
-debug. O build `release` é **debuggable** e leva o `wrap.sh` (de `src/debug/resources`): o Android
-só roda `wrap.sh` em apps debuggable, e sem ele o build 32-bit não reserva 0x80000000. Serve para APK
-distribuído pelo GitHub; para loja, só depois do arm64 (ou de outra forma de reservar a RAM). O
-manifest de debug (GameActivity exportada para o adb) não entra no release.
 
 A nightly publica `wreckedmetal-armeabi-v7a.apk` (assinado, o que os jogadores instalam) e
 `wreckedmetal-armeabi-v7a-debug.apk`. O release é `com.costelinhagames.wreckedmetal` e o debug
