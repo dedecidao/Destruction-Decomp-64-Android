@@ -96,6 +96,12 @@ em primeiro plano, se o dispositivo não pede som há 500 ms, o stream é fechad
 novo; se não abriu, nova tentativa em 1 s, dobrando até 30 s. `DD64_NO_AUDIO_RECOVERY`
 desliga.
 
+Ajustes dos testes no aparelho (20/11): o watchdog só age com a **janela em foco** (um seletor
+de apps sobre o jogo pausa a activity mas não o loop, e ele reabria o áudio à toa); e as
+aberturas de stream são **serializadas** (na partida ele via o stream ainda nulo enquanto o jogo
+abria o primeiro e abria um segundo: dois streams lendo o mesmo anel, ~110 underruns/s). Ele
+só tenta de novo uma abertura que falhou. A música substituta também troca o stream sob lock.
+
 **Direção com setas:** `[input] touch_arrows` no dd64.ini, a mesma chave no **menu R >
 controls > touch steering** (vale ao reiniciar o jogo) e na caixa do launcher
 ("Direção com setas (cruzeta)").
