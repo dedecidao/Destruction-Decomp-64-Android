@@ -90,6 +90,10 @@ android {
             jniDebuggable = true
             applicationIdSuffix = '.debug'
             versionNameSuffix = '-debug'
+            // Signed with the Wrecked Metal key when there is one (CI, the maintainer's PC),
+            // so a debug build from CI installs over one built on the PC and the next CI build
+            // over that, keeping the debug app's imported ROM. Without the key: the debug key
+            signingConfig = releaseSigning != null ? signingConfigs.release : signingConfigs.debug
         }
         release {
             minifyEnabled = false
