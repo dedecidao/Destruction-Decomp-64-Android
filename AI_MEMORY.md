@@ -120,6 +120,15 @@ Last updated: 2026-11-20 (v0.1.1-beta).
 - **Cheats left on cause hangs that look like bugs.** Always disable them before a device test.
 - **The USB cable/port on the maintainer's PC is flaky** (adb "offline", "write failed"). The rear
   motherboard port is stable.
+- **Game libc reading an f64 through `(u32 *)&d`** gets the low word on ARM/x86. `frexp`
+  (`src/libc/7B8B0.c`) did, so `log()`/`pow()` were wrong for every argument but 1.0. Symptom:
+  the Baja Buggy (car type 12) and type 21, the only cars with offroad 3.0, spun off at 200+ m/s
+  on contact (rear-tyre grip factor `x1B8` about -152). Fixed in engine PR #6.
+- **CI debug APKs are signed with the release key** (when the secrets exist), so they install
+  over the debug app on the S23 without an uninstall and keep its imported ROM.
+- **Physics trace**: engine branch `debug/car-trace`, enabled by `DD64_CARTRACE=1` in the debug
+  app's `Data/env.txt` (with `DD64_BOOT=track=4,type=1,car=N`, `DD64_FAKEGAS=200:1.0`). It logs
+  per-stage velocity jumps, tyre forces past the grip cap and big suspension forces.
 - Cloud agent environment (Claude Code on the web): the proxy blocks repo settings, rulesets,
   tag pushes and branch deletes. Those go through the maintainer's PC session or the GitHub UI.
 
@@ -180,6 +189,10 @@ Last updated: 2026-11-20 (v0.1.1-beta).
   - "Device report" issue template.
 
   **v0.1.1-beta published.** Then added `AGENTS.md` + this file.
+
+- **2026-11-21**: Baja Buggy "flies off" bug traced on the S23 with a new physics trace; root
+  cause was the port's `frexp` byte order (engine PR #6). Debug APKs now signed with the release
+  key.
 
 ---
 
