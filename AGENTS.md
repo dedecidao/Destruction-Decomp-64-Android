@@ -13,7 +13,9 @@ demolition racer, rebuilt from the community decompilation. By Costelinha Games.
    diagnostics table.
 3. [DOCS_INTERNALS_AND_OPTIONS.md](DOCS_INTERNALS_AND_OPTIONS.md): game internals,
    options and cheats.
-4. [docs/ARM64.md](docs/ARM64.md) and [docs/PLANO.md](docs/PLANO.md): the 64-bit plan and
+4. [DOCS_DEV_SETUP.md](DOCS_DEV_SETUP.md): minimum dev environment setup, local/CI builds,
+   `tools/test-run.ps1`, ADB deploy & debug variables (`DD64_*`).
+5. [docs/ARM64.md](docs/ARM64.md) and [docs/PLANO.md](docs/PLANO.md): the 64-bit plan and
    the original port plan.
 
 ## Ground rules (non-negotiable)
