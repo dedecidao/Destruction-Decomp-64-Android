@@ -6,7 +6,7 @@ format is loosely based on Akita's [ai-memory](https://akitaonrails.com/2026/05/
 idea (concepts / decisions / gotchas / sessions), kept as one markdown file. See
 [AGENTS.md](AGENTS.md) for the rules, and update this file when you learn something durable.
 
-Last updated: 2026-11-20 (v0.1.1-beta).
+Last updated: 2026-11-21 (v0.1.2-beta).
 
 ---
 
@@ -139,8 +139,10 @@ Last updated: 2026-11-20 (v0.1.1-beta).
 - The maintainer is André (GitHub `dedecidao`). He writes in Portuguese. Code comments and
   commits are in English.
 - The test device is a Galaxy S23 Ultra (Snapdragon 8 Gen 2 / Adreno 740, Android 17), driven
-  over adb from his Windows PC. adb lives at `C:\Users\Admin\Android\platform-tools\adb.exe`.
-  He likes a Windows alarm sound when a long test finishes.
+  over adb from his Windows PC. The versioned deploy/debug script lives at `tools/test-run.ps1`
+  (auto-detects `adb.exe` on `PATH` or `%USERPROFILE%\Android\platform-tools\adb.exe`, handles
+  `[cheats]` backup/disable/restore, `Data/env.txt`, `dd64.log` + `logcat` + `screencap`, and
+  plays a Windows alarm sound when done). See `DOCS_DEV_SETUP.md` for the full setup guide.
 - He prefers minimal tethering: do everything possible without the device, then run one short
   adb test.
 - Debug test hooks in the debug build (`touch.c`): `DD64_POKE`, `DD64_GOTO`, `DD64_SHOT=n`,
@@ -192,7 +194,7 @@ Last updated: 2026-11-20 (v0.1.1-beta).
 
 - **2026-11-21**: Baja Buggy "flies off" bug traced on the S23 with a new physics trace; root
   cause was the port's `frexp` byte order (engine PR #6). Debug APKs now signed with the release
-  key.
+  key. Added `DOCS_DEV_SETUP.md` and versioned ADB runner `tools/test-run.ps1`.
 
 ---
 
