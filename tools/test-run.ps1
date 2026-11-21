@@ -100,14 +100,21 @@ function Invoke-Adb {
         [Parameter(ValueFromRemainingArguments)][string[]]$Args,
         [switch]$AllowFailure
     )
-    $out = & $Adb @Args 2>&1
-    $code = $LASTEXITCODE
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $out = & $Adb @Args 2>&1
+        $code = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
+    $text = ($out | ForEach-Object { $_.ToString() }) -join "`n"
     if (-not $AllowFailure -and $code -ne 0) {
-        throw "adb $($Args -join ' ') failed (exit $code): $($out -join "`n")"
+        throw "adb $($Args -join ' ') failed (exit $code): $text"
     }
     return [pscustomobject]@{
         ExitCode = $code
-        Output   = ($out -join "`n").Trim()
+        Output   = $text.Trim()
     }
 }
 
@@ -202,8 +209,11 @@ function Play-FinishAlarm {
 $adb = Find-Adb
 Write-Host "Using ADB: $adb" -ForegroundColor DarkGray
 
+# Disable mDNS discovery so cold ADB startup doesn't trigger firewall prompts or stall
+$env:ADB_MDNS = "0"
+
 # Verify connected device
-$devicesOut = (& $adb devices) -join "`n"
+$devicesOut = (Invoke-Adb $adb devices).Output
 $deviceLines = ($devicesOut -split "`r?`n") | Where-Object { $_ -match '^\S+\s+device$' }
 if (-not $deviceLines) {
     throw "No authorized Android device connected.`n`nadb devices output:`n$devicesOut`n`nTip: Check USB debugging on the S23 Ultra or switch to a rear motherboard USB port if adb reports offline."
@@ -361,8 +371,8 @@ try {
     }
 
     $logcatPath = Join-Path $OutDir "logcat.txt"
-    $lc = & $adb logcat -d -v threadtime -s DD64:V SDL:V DEBUG:V libc:V AndroidRuntime:E 2>&1
-    [System.IO.File]::WriteAllText($logcatPath, (($lc -join "`n") + "`n"), $utf8NoBom)
+    $lcRes = Invoke-Adb $adb logcat -d -v threadtime -s DD64:V SDL:V DEBUG:V libc:V AndroidRuntime:E -AllowFailure
+    [System.IO.File]::WriteAllText($logcatPath, ($lcRes.Output + "`n"), $utf8NoBom)
 
 } finally {
     # Step 8: Always clean up env.txt and restore dd64.ini
